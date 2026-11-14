@@ -8,7 +8,7 @@ export default function Home() {
       <header>
         <div className="wrap">
           <a className="logo" href="#top" aria-label="Home">
-            <img className="mark" src="/mark.webp" alt="" width="46" height="52" />
+            <img className="mark" src="/mark.webp" alt="" width="46" height="45" />
             <span>
               <b>{BRAND.name.toUpperCase()}</b>
               <small>{BRAND.descriptor}</small>
@@ -98,7 +98,13 @@ export default function Home() {
 
       <footer>
         <div className="wrap">
-          <img className="mark" src="/mark.webp" alt="" width="46" height="52" />
+          <img
+            className="lockup"
+            src="/logo.webp"
+            alt={`${BRAND.name} logo`}
+            width="220"
+            height="182"
+          />
           <p>
             &copy; 2026 {BRAND.name}, a trade name of {BRAND.legalName}. Starting with long-term
             care in {BRAND.region}.

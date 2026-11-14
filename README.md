@@ -27,7 +27,7 @@ npm run dev
 
 ## Brand name
 
-The name, descriptor, and region are set in `lib/brand.js`. The logo file `public/logo.webp` still says Apex and is not used on the site until new artwork exists.
+The name, descriptor, and region are set in `lib/brand.js`. The logo files in `public/` (`mark.webp` emblem, `logo.webp` with the Apixora name) are cut from the new logo image on a transparent background.
 
 ## Notes
 
