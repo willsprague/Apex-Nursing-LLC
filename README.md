@@ -27,6 +27,10 @@ Until step 4 is done, the form tells visitors that nothing was sent, so no reque
 4. In Authentication > URL Configuration, set Site URL to your live site address.
 5. Make sure Vercel has `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (the Supabase integration adds them). Redeploy.
 
+## Mobile app
+
+The iPhone and Android app lives in `mobile/`. See `mobile/README.md` for setup. It needs `supabase/migrations/003_profiles_and_listings.sql`.
+
 ## Run it on your computer (optional)
 
 ```
