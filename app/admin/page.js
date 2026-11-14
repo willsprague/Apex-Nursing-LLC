@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabase } from "../../lib/supabase/server";
-import { setStatus, signOut } from "./actions";
+import { setStatus, signOut, setListingStatus, setVerified } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin", robots: { index: false, follow: false } };
@@ -29,8 +29,50 @@ export default async function Admin() {
     .order("created_at", { ascending: false })
     .limit(200);
 
+  const { data: people } = await supabase
+    .from("profiles")
+    .select("id, role, display_name, verified, created_at")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  const { data: listings } = await supabase
+    .from("care_listings")
+    .select("id, created_at, town, care_type, schedule, hourly_rate, details, status, poster:profiles(display_name)")
+    .order("created_at", { ascending: false })
+    .limit(200);
+
   return (
     <main><section><div className="wrap">
+      <h2>App accounts</h2>
+      <p className="lead">Check a person's ID or nursing license first, then mark them verified.</p>
+      {(people || []).length === 0 && <p>No accounts yet.</p>}
+      {(people || []).map((p) => (
+        <form key={p.id} action={setVerified} style={{ display: "flex", gap: 12, padding: 6 }}>
+          <input type="hidden" name="id" value={p.id} />
+          <input type="hidden" name="value" value={p.verified ? "false" : "true"} />
+          <span>{p.display_name} ({p.role}) {p.verified ? "- verified" : "- not verified"}</span>
+          <button type="submit">{p.verified ? "Remove verification" : "Mark verified"}</button>
+        </form>
+      ))}
+
+      <h2>Care listings</h2>
+      <p className="lead">Approve only listings with no names, addresses or health details.</p>
+      {(listings || []).length === 0 && <p>No listings yet.</p>}
+      {(listings || []).map((l) => (
+        <form key={l.id} action={setListingStatus} style={{ padding: 8, borderBottom: "1px solid #ddd" }}>
+          <input type="hidden" name="id" value={l.id} />
+          <b>{l.town}</b>, {l.care_type}, ${l.hourly_rate}/hr, {l.schedule}
+          <br />
+          {l.details}
+          <br />
+          <small>Posted by {l.poster?.display_name || "unknown"} - {l.status}</small>
+          <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+            <button name="status" value="approved" type="submit">Approve</button>
+            <button name="status" value="rejected" type="submit">Reject</button>
+            <button name="status" value="closed" type="submit">Close</button>
+          </div>
+        </form>
+      ))}
+
       <h2>Facility requests</h2>
       <form action={signOut}><button className="btn alt" type="submit">Sign out</button></form>
       {error && <p role="alert">Could not load requests.</p>}
