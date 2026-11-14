@@ -17,6 +17,16 @@ Repo for Apex Nurse Partners LLC, doing business as Apixora (trade name not yet 
 
 Until step 4 is done, the form tells visitors that nothing was sent, so no request is lost silently. Requests appear in Supabase under Table Editor > `facility_leads`.
 
+## Staff sign-in (admin page)
+
+`/login` emails a one-time link and `/admin` lists facility requests. Only emails in the `admins` table get in.
+
+1. In the Supabase SQL Editor, run `supabase/migrations/002_admin_auth.sql`, then run the `insert into public.admins ...` line at the bottom with your email.
+2. In Supabase, open Authentication > Users > Add user (or Invite) and create your account with that same email.
+3. In Supabase, open Authentication > Email Templates > Magic Link and change the link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`.
+4. In Authentication > URL Configuration, set Site URL to your live site address.
+5. Make sure Vercel has `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (the Supabase integration adds them). Redeploy.
+
 ## Run it on your computer (optional)
 
 ```
