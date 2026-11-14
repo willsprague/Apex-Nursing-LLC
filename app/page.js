@@ -98,15 +98,11 @@ export default function Home() {
 
       <footer>
         <div className="wrap">
-          <img
-            className="lockup"
-            src="/logo.webp"
-            alt={`${BRAND.name} ${BRAND.descriptor} logo`}
-            width="220"
-            height="227"
-          />
-          &copy; 2026 {BRAND.name} {BRAND.descriptor}. Starting with long-term care in{" "}
-          {BRAND.region}.
+          <img className="mark" src="/mark.webp" alt="" width="46" height="52" />
+          <p>
+            &copy; 2026 {BRAND.name}, a trade name of {BRAND.legalName}. Starting with long-term
+            care in {BRAND.region}.
+          </p>
         </div>
       </footer>
     </>

@@ -1,6 +1,6 @@
 # Apex-Nursing-LLC
 
-Repo for Apex Nursing LLC (brand: Apex Nurse Partners).
+Repo for Apex Nurse Partners LLC, doing business as Apixora (trade name not yet filed; name still under review).
 
 ## What's here
 
@@ -27,7 +27,7 @@ npm run dev
 
 ## Brand name
 
-The name, descriptor, and region are set in `lib/brand.js`. The logo images in `public/` contain the name, so a rename also needs new logo files.
+The name, descriptor, and region are set in `lib/brand.js`. The logo file `public/logo.webp` still says Apex and is not used on the site until new artwork exists.
 
 ## Notes
 
