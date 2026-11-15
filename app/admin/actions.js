@@ -21,3 +21,37 @@ export async function signOut() {
   await supabase.auth.signOut();
   redirect("/login");
 }
+
+export async function setFee(formData) {
+  const v = Number(String(formData.get("value") || ""));
+  if (!Number.isFinite(v) || v < 0 || v > 60) return;
+  const supabase = await createSupabase();
+  await supabase.rpc("admin_set_fee", { v });
+  revalidatePath("/admin");
+}
+
+export async function setRoleMin(formData) {
+  const role = String(formData.get("role") || "");
+  const v = Number(String(formData.get("value") || ""));
+  if (!role || !Number.isFinite(v) || v < 0 || v > 300) return;
+  const supabase = await createSupabase();
+  await supabase.rpc("admin_set_role_min", { p_role: role, v });
+  revalidatePath("/admin");
+}
+
+export async function setFacilityVerified(formData) {
+  const id = String(formData.get("id") || "");
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return;
+  const supabase = await createSupabase();
+  await supabase.rpc("admin_set_facility_verified", { target: id, value: formData.get("value") === "true" });
+  revalidatePath("/admin");
+}
+
+export async function setShiftStatus(formData) {
+  const id = String(formData.get("id") || "");
+  const status = String(formData.get("status") || "");
+  if (!/^[0-9a-f-]{36}$/i.test(id) || !["open", "filled", "cancelled"].includes(status)) return;
+  const supabase = await createSupabase();
+  await supabase.rpc("admin_set_shift_status", { target: id, new_status: status });
+  revalidatePath("/admin");
+}

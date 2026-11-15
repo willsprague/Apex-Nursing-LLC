@@ -19,13 +19,23 @@ Until step 4 is done, the form tells visitors that nothing was sent, so no reque
 
 ## Staff sign-in (admin page)
 
-`/login` emails a one-time link and `/admin` lists facility requests. Only emails in the `admins` table get in.
+`/login` emails a one-time link. Facilities use it to create an account and land on `/portal`. `/admin` lists facility requests, accounts and shifts, and only opens for emails in the `admins` table.
 
 1. In the Supabase SQL Editor, run `supabase/migrations/002_admin_auth.sql`, then run the `insert into public.admins ...` line at the bottom with your email.
-2. In Supabase, open Authentication > Users > Add user (or Invite) and create your account with that same email.
+2. Go to `/login` on the live site and sign in once with that same email, so your account exists.
 3. In Supabase, open Authentication > Email Templates > Magic Link and change the link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`.
 4. In Authentication > URL Configuration, set Site URL to your live site address.
 5. Make sure Vercel has `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (the Supabase integration adds them). Redeploy.
+
+## Facility shifts
+
+Run `supabase/migrations/004_facilities_and_shifts.sql` in the Supabase SQL Editor (after 001 and 002).
+
+- A facility signs in at `/login`, registers on `/portal`, and waits for you to mark it verified on `/admin`.
+- A verified facility posts shifts: role, date, times (Eastern), people needed, and the hourly rate it will pay. The worker rate is that rate minus the Apixora fee, and it is saved with the shift.
+- On `/admin`, **Pricing** sets the fee percent (starts at 25) and the lowest rate allowed per role. Role minimums start at 0, so set them before launch. Fee changes affect only shifts posted afterward.
+- Facilities can cancel an open shift more than 24 hours before it starts. Staff can mark shifts filled, reopen or cancel from `/admin`.
+- All rules are enforced in the database, not only in the pages.
 
 ## Run it on your computer (optional)
 
