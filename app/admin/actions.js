@@ -55,3 +55,20 @@ export async function setShiftStatus(formData) {
   await supabase.rpc("admin_set_shift_status", { target: id, new_status: status });
   revalidatePath("/admin");
 }
+
+export async function setWorkerVerified(formData) {
+  const id = String(formData.get("id") || "");
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return;
+  const supabase = await createSupabase();
+  await supabase.rpc("admin_set_worker_verified", { target: id, value: formData.get("value") === "true" });
+  revalidatePath("/admin");
+}
+
+export async function setClaimStatus(formData) {
+  const id = String(formData.get("id") || "");
+  const status = String(formData.get("status") || "");
+  if (!/^[0-9a-f-]{36}$/i.test(id) || !["confirmed", "released"].includes(status)) return;
+  const supabase = await createSupabase();
+  await supabase.rpc("admin_set_claim_status", { p_claim: id, p_status: status });
+  revalidatePath("/admin");
+}
