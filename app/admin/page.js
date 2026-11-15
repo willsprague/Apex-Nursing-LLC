@@ -29,13 +29,11 @@ export default async function Admin() {
     .order("created_at", { ascending: false })
     .limit(200);
 
-  const [{ data: feeRow }, { data: roles }, { data: facilities }, { data: shifts }] = await Promise.all([
-    supabase.from("app_settings").select("value").eq("key", "fee_percent").maybeSingle(),
+  const [{ data: feeValue }, { data: roles }, { data: facilities }, { data: shifts }] = await Promise.all([
+    supabase.rpc("admin_get_fee"),
     supabase.from("shift_roles").select("role, min_bill_rate").order("role"),
     supabase.from("facilities").select("id, name, facility_type, contact_name, verified").order("created_at", { ascending: false }).limit(200),
-    supabase.from("shifts")
-      .select("id, role, starts_at, ends_at, headcount, bill_rate, fee_percent, worker_rate, status, notes, facility:facilities(name)")
-      .order("starts_at", { ascending: false }).limit(200),
+    supabase.rpc("admin_list_shifts"),
   ]);
   const when = (iso) => new Date(iso).toLocaleString("en-US", { timeZone: "America/New_York", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
@@ -45,7 +43,7 @@ export default async function Admin() {
       <p className="lead">The fee is a percent of the rate the facility pays. Changes apply only to shifts posted afterward.</p>
       <form action={setFee} style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <label htmlFor="fee">Apixora fee (%)</label>
-        <input id="fee" name="value" type="number" step="0.5" min="0" max="60" defaultValue={feeRow?.value ?? 25} />
+        <input id="fee" name="value" type="number" step="0.5" min="0" max="60" defaultValue={feeValue ?? 25} />
         <button type="submit">Save fee</button>
       </form>
       <p style={{ marginTop: 16 }}>Lowest hourly rate a facility may offer, by role:</p>
@@ -75,7 +73,7 @@ export default async function Admin() {
       {(shifts || []).map((s) => (
         <form key={s.id} action={setShiftStatus} style={{ padding: 8, borderBottom: "1px solid #ddd" }}>
           <input type="hidden" name="id" value={s.id} />
-          <b>{s.facility?.name}</b>: {s.role} x{s.headcount}, {when(s.starts_at)} to {when(s.ends_at)}
+          <b>{s.facility_name}</b>: {s.role} x{s.headcount}, {when(s.starts_at)} to {when(s.ends_at)}
           <br />
           Facility pays ${s.bill_rate}/hr, worker earns ${s.worker_rate}/hr ({s.fee_percent}% fee). {s.notes}
           <br />

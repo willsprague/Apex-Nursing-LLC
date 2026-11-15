@@ -46,19 +46,17 @@ export default async function Portal() {
     </>);
   }
 
-  const [{ data: roles }, { data: feeRow }, { data: shifts }] = await Promise.all([
+  const [{ data: roles }, { data: shifts }] = await Promise.all([
     supabase.from("shift_roles").select("role, min_bill_rate").order("role"),
-    supabase.from("app_settings").select("value").eq("key", "fee_percent").maybeSingle(),
     supabase.from("shifts")
-      .select("id, role, starts_at, ends_at, headcount, bill_rate, worker_rate, fee_percent, status, notes")
+      .select("id, role, starts_at, ends_at, headcount, bill_rate, status, notes")
       .order("starts_at", { ascending: false }).limit(100),
   ]);
-  const fee = Number(feeRow?.value ?? 25);
 
   return shell(<>
     <h2>{facility.name}</h2>
     <h3>Post a shift</h3>
-    <ShiftForm roles={roles || []} fee={fee} />
+    <ShiftForm roles={roles || []} />
     <h3 style={{ marginTop: 32 }}>Your shifts</h3>
     {(shifts || []).length === 0 && <p>No shifts yet.</p>}
     {(shifts || []).map((s) => (
@@ -66,7 +64,7 @@ export default async function Portal() {
         <input type="hidden" name="id" value={s.id} />
         <b>{s.role}</b> x{s.headcount}, {fmt(s.starts_at)} to {fmt(s.ends_at)}
         <br />
-        You pay ${s.bill_rate}/hr. Worker earns ${s.worker_rate}/hr. Status: {s.status}
+        You pay ${s.bill_rate}/hr. Status: {s.status}
         {s.status === "open" && <button type="submit" style={{ marginLeft: 12 }}>Cancel shift</button>}
       </form>
     ))}
