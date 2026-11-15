@@ -7,7 +7,8 @@ export const metadata = { title: "Admin", robots: { index: false, follow: false 
 
 const STATUSES = ["new", "contacted", "qualified", "closed"];
 
-export default async function Admin() {
+export default async function Admin({ searchParams }) {
+  const { error: actionError } = await searchParams;
   const supabase = await createSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -41,11 +42,12 @@ export default async function Admin() {
 
   return (
     <main><section><div className="wrap">
+      {actionError && <p role="alert" style={{ color: "#f2b8b5", fontWeight: 600 }}>{String(actionError).slice(0, 300)}</p>}
       <h2>Shift claims</h2>
       <p className="lead">Workers who claimed a shift. Confirm once you are happy with the match.</p>
       {(claims || []).length === 0 && <p>No claims yet.</p>}
       {(claims || []).map((c) => (
-        <form key={c.claim_id} action={setClaimStatus} style={{ padding: 8, borderBottom: "1px solid #ddd" }}>
+        <form key={c.claim_id} action={setClaimStatus} style={{ display: "block", padding: 8, borderBottom: "1px solid #ddd" }}>
           <input type="hidden" name="id" value={c.claim_id} />
           <b>{c.worker_name}</b> ({c.worker_role}, license {c.license_number}) for <b>{c.facility_name}</b>: {c.shift_role},{" "}
           {when(c.starts_at)} to {when(c.ends_at)}, worker earns ${c.worker_rate}/hr
@@ -102,7 +104,7 @@ export default async function Admin() {
       <h2>Shifts</h2>
       {(shifts || []).length === 0 && <p>No shifts yet.</p>}
       {(shifts || []).map((s) => (
-        <form key={s.id} action={setShiftStatus} style={{ padding: 8, borderBottom: "1px solid #ddd" }}>
+        <form key={s.id} action={setShiftStatus} style={{ display: "block", padding: 8, borderBottom: "1px solid #ddd" }}>
           <input type="hidden" name="id" value={s.id} />
           <b>{s.facility_name}</b>: {s.role} x{s.headcount}, {when(s.starts_at)} to {when(s.ends_at)}
           <br />

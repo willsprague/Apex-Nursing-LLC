@@ -15,7 +15,8 @@ function fmt(iso) {
   });
 }
 
-export default async function Portal() {
+export default async function Portal({ searchParams }) {
+  const { error: actionError } = await searchParams;
   const supabase = await createSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -54,13 +55,14 @@ export default async function Portal() {
   ]);
 
   return shell(<>
+    {actionError && <p role="alert" style={{ color: "#f2b8b5", fontWeight: 600 }}>{String(actionError).slice(0, 300)}</p>}
     <h2>{facility.name}</h2>
     <h3>Post a shift</h3>
     <ShiftForm roles={roles || []} />
     <h3 style={{ marginTop: 32 }}>Your shifts</h3>
     {(shifts || []).length === 0 && <p>No shifts yet.</p>}
     {(shifts || []).map((s) => (
-      <form key={s.id} action={cancelShift} style={{ padding: 8, borderBottom: "1px solid #ddd" }}>
+      <form key={s.id} action={cancelShift} style={{ display: "block", padding: 8, borderBottom: "1px solid #ddd" }}>
         <input type="hidden" name="id" value={s.id} />
         <b>{s.role}</b> x{s.headcount}, {fmt(s.starts_at)} to {fmt(s.ends_at)}
         <br />

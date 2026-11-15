@@ -1,5 +1,6 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabase } from "../../lib/supabase/server";
 
@@ -34,7 +35,10 @@ export async function claimShift(fd) {
   if (!UUID.test(id)) return;
   const supabase = await createSupabase();
   const { error } = await supabase.rpc("claim_shift", { p_shift: id });
-  if (error) console.error("claim failed:", error.code);
+  if (error) {
+    console.error("claim failed:", error.code);
+    redirect(`/worker?error=${encodeURIComponent(friendly(error, "Could not claim that shift. Try again."))}`);
+  }
   revalidatePath("/worker");
 }
 
@@ -43,6 +47,9 @@ export async function withdrawClaim(fd) {
   if (!UUID.test(id)) return;
   const supabase = await createSupabase();
   const { error } = await supabase.rpc("withdraw_claim", { p_claim: id });
-  if (error) console.error("withdraw failed:", error.code);
+  if (error) {
+    console.error("withdraw failed:", error.code);
+    redirect(`/worker?error=${encodeURIComponent(friendly(error, "Could not withdraw. Try again."))}`);
+  }
   revalidatePath("/worker");
 }
