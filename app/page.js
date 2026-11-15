@@ -17,7 +17,7 @@ export default function Home() {
           <nav>
             <a href="#settings">Who we serve</a>
             <a href="#how">How it works</a>
-            <a href="/login">Facility sign in</a>
+            <a href="/login">Sign in</a>
             <a className="btn" href="#contact">
               Request staffing
             </a>

@@ -37,6 +37,16 @@ Run `supabase/migrations/004_facilities_and_shifts.sql` and then `005_hide_fee_f
 - Facilities can cancel an open shift more than 24 hours before it starts. Staff can mark shifts filled, reopen or cancel from `/admin`.
 - All rules are enforced in the database, not only in the pages.
 
+## Workers
+
+Run `supabase/migrations/006_workers_and_claims.sql` in the Supabase SQL Editor (after 001, 002, 004 and 005).
+
+- A worker signs in at `/login`, picks "nurse or aide" on `/welcome`, and registers a role and license number on `/worker`.
+- On `/admin`, check the license on the state lookup, then mark the worker verified.
+- A verified worker sees open shifts for their own role with their own pay rate only. They never see the facility's rate or the fee.
+- A worker claims a shift. You confirm or release it on `/admin` under Shift claims. Confirming the last open spot marks the shift filled, and the worker then sees the facility name.
+- Workers cannot claim overlapping shifts. They can withdraw a confirmed shift more than 24 hours before it starts. Cancelling a shift releases everyone who claimed it.
+
 ## Run it on your computer (optional)
 
 ```

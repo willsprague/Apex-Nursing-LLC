@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabase } from "../../lib/supabase/server";
-import { setStatus, signOut, setFee, setRoleMin, setFacilityVerified, setShiftStatus } from "./actions";
+import { setStatus, signOut, setFee, setRoleMin, setFacilityVerified, setShiftStatus, setWorkerVerified, setClaimStatus } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin", robots: { index: false, follow: false } };
@@ -29,7 +29,9 @@ export default async function Admin() {
     .order("created_at", { ascending: false })
     .limit(200);
 
-  const [{ data: feeValue }, { data: roles }, { data: facilities }, { data: shifts }] = await Promise.all([
+  const [{ data: workers }, { data: claims }, { data: feeValue }, { data: roles }, { data: facilities }, { data: shifts }] = await Promise.all([
+    supabase.rpc("admin_list_workers"),
+    supabase.rpc("admin_list_claims"),
     supabase.rpc("admin_get_fee"),
     supabase.from("shift_roles").select("role, min_bill_rate").order("role"),
     supabase.from("facilities").select("id, name, facility_type, contact_name, verified").order("created_at", { ascending: false }).limit(200),
@@ -39,6 +41,35 @@ export default async function Admin() {
 
   return (
     <main><section><div className="wrap">
+      <h2>Shift claims</h2>
+      <p className="lead">Workers who claimed a shift. Confirm once you are happy with the match.</p>
+      {(claims || []).length === 0 && <p>No claims yet.</p>}
+      {(claims || []).map((c) => (
+        <form key={c.claim_id} action={setClaimStatus} style={{ padding: 8, borderBottom: "1px solid #ddd" }}>
+          <input type="hidden" name="id" value={c.claim_id} />
+          <b>{c.worker_name}</b> ({c.worker_role}, license {c.license_number}) for <b>{c.facility_name}</b>: {c.shift_role},{" "}
+          {when(c.starts_at)} to {when(c.ends_at)}, worker earns ${c.worker_rate}/hr
+          <br />
+          <small>Status: {c.claim_status}</small>
+          <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+            {c.claim_status === "claimed" && <button name="status" value="confirmed" type="submit">Confirm</button>}
+            <button name="status" value="released" type="submit">Release</button>
+          </div>
+        </form>
+      ))}
+
+      <h2>Worker accounts</h2>
+      <p className="lead">Check each license on the state lookup before you verify.</p>
+      {(workers || []).length === 0 && <p>No worker accounts yet.</p>}
+      {(workers || []).map((w) => (
+        <form key={w.id} action={setWorkerVerified} style={{ display: "flex", gap: 12, padding: 6 }}>
+          <input type="hidden" name="id" value={w.id} />
+          <input type="hidden" name="value" value={w.verified ? "false" : "true"} />
+          <span>{w.display_name} ({w.role}), license {w.license_number} - {w.verified ? "verified" : "not verified"}</span>
+          <button type="submit">{w.verified ? "Remove verification" : "Mark verified"}</button>
+        </form>
+      ))}
+
       <h2>Pricing</h2>
       <p className="lead">The fee is a percent of the rate the facility pays. Changes apply only to shifts posted afterward.</p>
       <form action={setFee} style={{ display: "flex", gap: 8, alignItems: "center" }}>
