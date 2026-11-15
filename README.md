@@ -23,8 +23,8 @@ Until step 4 is done, the form tells visitors that nothing was sent, so no reque
 
 1. In the Supabase SQL Editor, run `supabase/migrations/002_admin_auth.sql`, then run the `insert into public.admins ...` line at the bottom with your email.
 2. Go to `/login` on the live site and sign in once with that same email, so your account exists.
-3. In Supabase, open Authentication > Email Templates > Magic Link and change the link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`.
-4. In Authentication > URL Configuration, set Site URL to your live site address.
+3. Supabase's default sign-in email works as is. Open the link in the same browser you requested it from. (Editing the template needs custom SMTP; if you set that up, you may use `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`.)
+4. In Authentication > URL Configuration, set Site URL to your live site address and add `https://your-live-address/**` under Redirect URLs.
 5. Make sure Vercel has `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (the Supabase integration adds them). Redeploy.
 
 ## Facility shifts
