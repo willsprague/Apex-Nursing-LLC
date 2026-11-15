@@ -11,10 +11,11 @@ export async function sendLink(_prev, formData) {
     return { ok: false, message: "Enter a valid email address." };
   }
   const supabase = await createSupabase();
-  // shouldCreateUser: false means only accounts you created in Supabase can get a link.
+  // New facilities create their account by signing in. A new account can do nothing until
+  // staff verify its facility, and /admin only opens for emails on the admins list.
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: false },
+    options: { shouldCreateUser: true },
   });
   if (error) console.error("sign-in link failed:", error.code || error.status);
   // Same answer whether or not the email exists, so strangers can't test which emails are admins.
