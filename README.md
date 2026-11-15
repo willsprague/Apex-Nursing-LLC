@@ -29,10 +29,10 @@ Until step 4 is done, the form tells visitors that nothing was sent, so no reque
 
 ## Facility shifts
 
-Run `supabase/migrations/004_facilities_and_shifts.sql` in the Supabase SQL Editor (after 001 and 002).
+Run `supabase/migrations/004_facilities_and_shifts.sql` and then `005_hide_fee_from_facilities.sql` in the Supabase SQL Editor (after 001 and 002). Migration 005 stops facilities from reading the fee and the worker rate.
 
 - A facility signs in at `/login`, registers on `/portal`, and waits for you to mark it verified on `/admin`.
-- A verified facility posts shifts: role, date, times (Eastern), people needed, and the hourly rate it will pay. The worker rate is that rate minus the Apixora fee, and it is saved with the shift.
+- A verified facility posts shifts: role, date, times (Eastern), people needed, and the hourly rate it will pay. The worker rate is that rate minus the Apixora fee, and it is saved with the shift. Facilities see only what they pay, never the fee or the worker rate.
 - On `/admin`, **Pricing** sets the fee percent (starts at 25) and the lowest rate allowed per role. Role minimums start at 0, so set them before launch. Fee changes affect only shifts posted afterward.
 - Facilities can cancel an open shift more than 24 hours before it starts. Staff can mark shifts filled, reopen or cancel from `/admin`.
 - All rules are enforced in the database, not only in the pages.
