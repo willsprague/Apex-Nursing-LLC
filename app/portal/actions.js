@@ -60,3 +60,15 @@ export async function cancelShift(fd) {
   await supabase.rpc("cancel_shift", { p_id: id });
   revalidatePath("/portal");
 }
+
+export async function addBonus(fd) {
+  const id = text(fd, "id");
+  const bonus = Number(text(fd, "bonus"));
+  if (!/^[0-9a-f-]{36}$/i.test(id) || !(bonus > 0)) {
+    redirect(`/portal?error=${encodeURIComponent("Enter a bonus amount in dollars per hour.")}`);
+  }
+  const supabase = await createSupabase();
+  const { error } = await supabase.rpc("add_shift_bonus", { p_shift: id, p_bonus: bonus });
+  if (error) redirect(`/portal?error=${encodeURIComponent(friendly(error, "Could not add the bonus. Try again."))}`);
+  revalidatePath("/portal");
+}

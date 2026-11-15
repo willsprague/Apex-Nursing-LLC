@@ -47,6 +47,14 @@ Run `supabase/migrations/006_workers_and_claims.sql` in the Supabase SQL Editor 
 - A worker claims a shift. You confirm or release it on `/admin` under Shift claims. Confirming the last open spot marks the shift filled, and the worker then sees the facility name.
 - Workers cannot claim overlapping shifts. They can withdraw a confirmed shift more than 24 hours before it starts. Cancelling a shift releases everyone who claimed it.
 
+## Bonuses and total pay
+
+Run `supabase/migrations/007_shift_bonus.sql` in the Supabase SQL Editor (after 001, 002, 004, 005 and 006). Run it right after this version deploys; until then the worker page shows blank pay.
+
+- A facility can add an hourly bonus to an open shift on `/portal`, and raise it later but never lower it.
+- Workers see their base rate crossed out, the new rate, and about how much the whole shift pays.
+- The bonus has its own fee on `/admin` under Pricing (starts at 10). Fee changes apply only to bonuses added afterward.
+
 ## Run it on your computer (optional)
 
 ```
