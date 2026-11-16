@@ -78,10 +78,10 @@ export default async function Admin() {
           <br />
           <small>References: {a.ref1_name} ({a.ref1_relationship}, {a.ref1_contact}); {a.ref2_name} ({a.ref2_relationship}, {a.ref2_contact}).</small>
           <br />
-          <small>Wants: {a.settings}. Available: {a.availability}. Applied {new Date(a.created_at).toLocaleDateString("en-US")}. Status: {a.status}</small>
+          <small>Wants: {a.settings}. Available: {a.availability}. Applied {new Date(a.created_at).toLocaleDateString("en-US")}. Status: {a.status.replace("_", " ")}</small>
           <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
-            {["contacted", "screening", "approved", "declined"].map((st) => (
-              <button key={st} name="status" value={st} type="submit">Mark {st}</button>
+            {[["contacted", "Contacted"], ["background_check", "Background check started"], ["health_screening", "Sent for physical and TB test"], ["approved", "Approved"], ["declined", "Declined"]].map(([st, label]) => (
+              <button key={st} name="status" value={st} type="submit">{label}</button>
             ))}
           </div>
         </form>
