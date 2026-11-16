@@ -16,7 +16,8 @@ function fmt(iso) {
 
 const LABEL = { claimed: "Waiting for our confirmation", confirmed: "Confirmed" };
 
-export default async function Worker() {
+export default async function Worker({ searchParams }) {
+  const { error: actionError } = await searchParams;
   const supabase = await createSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -54,10 +55,11 @@ export default async function Worker() {
   ]);
 
   return shell(<>
+    {actionError && <p role="alert" style={{ color: "#f2b8b5", fontWeight: 600 }}>{String(actionError).slice(0, 300)}</p>}
     <h2>Open shifts for {me.role}</h2>
     {(open || []).length === 0 && <p>No open shifts right now. Check back soon.</p>}
     {(open || []).map((s) => (
-      <form key={s.id} action={claimShift} style={{ padding: 8, borderBottom: "1px solid #ddd" }}>
+      <form key={s.id} action={claimShift} style={{ display: "block", padding: 8, borderBottom: "1px solid #ddd" }}>
         <input type="hidden" name="id" value={s.id} />
         <b>{s.facility_type}</b>, {fmt(s.starts_at)} to {fmt(s.ends_at)}
         <br />
@@ -71,7 +73,7 @@ export default async function Worker() {
     <h3 style={{ marginTop: 32 }}>Your shifts</h3>
     {(mine || []).length === 0 && <p>You have not claimed any shifts yet.</p>}
     {(mine || []).map((c) => (
-      <form key={c.claim_id} action={withdrawClaim} style={{ padding: 8, borderBottom: "1px solid #ddd" }}>
+      <form key={c.claim_id} action={withdrawClaim} style={{ display: "block", padding: 8, borderBottom: "1px solid #ddd" }}>
         <input type="hidden" name="id" value={c.claim_id} />
         <b>{c.facility_name || c.facility_type}</b>, {fmt(c.starts_at)} to {fmt(c.ends_at)}
         <br />
