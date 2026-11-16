@@ -70,4 +70,4 @@ The name, descriptor, and region are set in `lib/brand.js`. The logo files in `p
 
 ## Worker applications
 
-`/apply` is a public, formal application for nurses and aides (name, credential type, license, license discipline question, forms of ID they can show, two references). Run `supabase/migrations/008_worker_applications.sql` once in the Supabase SQL Editor. Staff review applications on `/admin`. The page deliberately does not collect Social Security numbers or ID images: those belong on the background check provider's secure page and the in-person I-9 check.
+`/apply` is a public, formal application for nurses and aides (name, credential type, license, license discipline question, forms of ID they can show, two professional references). Run `supabase/migrations/008_worker_applications.sql` once in the Supabase SQL Editor. Staff review applications on `/admin`. The page deliberately does not collect Social Security numbers or ID images: those belong on the background check provider's secure page and the in-person I-9 check.

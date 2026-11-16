@@ -16,7 +16,7 @@ export async function setStatus(formData) {
   revalidatePath("/admin");
 }
 
-const APP_STATUSES = ["new", "contacted", "background_check", "health_screening", "approved", "declined"];
+const APP_STATUSES = ["new", "contacted", "background_check", "approved", "health_screening", "cleared", "declined"];
 
 export async function setApplicationStatus(formData) {
   const id = String(formData.get("id") || "");

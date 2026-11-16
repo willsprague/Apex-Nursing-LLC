@@ -54,7 +54,7 @@ export default function ApplyForm() {
       </fieldset>
       {[1, 2].map((n) => (
         <fieldset key={n}>
-          <legend>Reference {n} (a supervisor or co-worker who has seen your work)</legend>
+          <legend>Professional reference {n}: a current or former supervisor, manager or co-worker who has seen your clinical work. No family or friends.</legend>
           <label>Name <input name={`ref${n}Name`} required maxLength={100} /></label>
           <label>How you know them <input name={`ref${n}Rel`} required maxLength={100} placeholder="Former charge nurse at ..." /></label>
           <label>Phone or email <input name={`ref${n}Contact`} required maxLength={254} /></label>
@@ -77,7 +77,7 @@ export default function ApplyForm() {
         shifts and look up my license with the state. I understand a background check may be needed
         later, and I will be asked for my permission before one is run.
       </label>
-      <p><small>Do not enter your Social Security number or upload ID here. After you are approved, the background check runs through a secure provider page, and we check your ID in person when you are hired.</small></p>
+      <p><small>Do not enter your Social Security number or upload ID here. The background check runs through a secure provider page, and we check your ID in person when you are hired.</small></p>
       <button className="btn" type="submit" disabled={pending}>{pending ? "Sending" : "Submit application"}</button>
       {state.ok === false && <p role="alert">{state.message}</p>}
     </form>

@@ -3,9 +3,12 @@
 -- This is the formal application. It records which forms of ID the applicant can
 -- provide, but NOT the ID itself or a Social Security number. Those go through the
 -- background check provider's secure page and the in-person I-9 check later.
--- Intake stages: new > contacted > background_check > health_screening > approved.
--- The physical and TB test are done by an outside urgent care. Record only the
--- stage here, never test results or medical details.
+-- Intake stages: new > contacted > background_check > approved > health_screening > cleared.
+-- 'approved' means references, license and background check passed. Only then is the
+-- applicant sent for the physical and TB test (outside urgent care), so nobody pays
+-- for a medical visit and then gets denied. 'cleared' means health screening is done
+-- and the person can make a worker account. Record only the stage here, never test
+-- results or medical details.
 -- Staff screen applicants and verify the license by hand before inviting them to
 -- make a worker account.
 
@@ -32,7 +35,7 @@ create table if not exists public.worker_applications (
   availability  text not null,
   consent       boolean not null check (consent),
   status        text not null default 'new'
-                check (status in ('new', 'contacted', 'background_check', 'health_screening', 'approved', 'declined')),
+                check (status in ('new', 'contacted', 'background_check', 'approved', 'health_screening', 'cleared', 'declined')),
   notes         text not null default '' check (char_length(notes) <= 1000)
 );
 
