@@ -93,3 +93,11 @@ export async function setClaimStatus(formData) {
   check(await supabase.rpc("admin_set_claim_status", { p_claim: id, p_status: status }));
   revalidatePath("/admin");
 }
+
+export async function setBonusFee(formData) {
+  const v = Number(String(formData.get("value") || ""));
+  if (!Number.isFinite(v) || v < 0 || v > 60) return;
+  const supabase = await createSupabase();
+  check(await supabase.rpc("admin_set_bonus_fee", { v }));
+  revalidatePath("/admin");
+}

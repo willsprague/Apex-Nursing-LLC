@@ -14,6 +14,23 @@ function fmt(iso) {
   });
 }
 
+function hours(a, b) {
+  return Math.round(((new Date(b) - new Date(a)) / 3600000) * 100) / 100;
+}
+
+function Pay({ base, bonus, total, totalPay, start, end }) {
+  const b = Number(bonus) > 0;
+  return (
+    <>
+      You earn{" "}
+      {b && <s style={{ opacity: 0.6 }}>${base}/hr</s>}{" "}
+      <b>${total}/hr</b>{b ? ` (includes a $${bonus}/hr facility bonus)` : ""}.
+      <br />
+      About ${totalPay} total for {hours(start, end)} hours.
+    </>
+  );
+}
+
 const LABEL = { claimed: "Waiting for our confirmation", confirmed: "Confirmed" };
 
 export default async function Worker({ searchParams }) {
@@ -63,7 +80,9 @@ export default async function Worker({ searchParams }) {
         <input type="hidden" name="id" value={s.id} />
         <b>{s.facility_type}</b>, {fmt(s.starts_at)} to {fmt(s.ends_at)}
         <br />
-        You earn ${s.worker_rate}/hr. {s.spots_left} of {s.headcount} spot{s.headcount === 1 ? "" : "s"} open.
+        <Pay base={s.base_rate} bonus={s.bonus_pay} total={s.total_rate} totalPay={s.total_pay} start={s.starts_at} end={s.ends_at} />
+        <br />
+        {s.spots_left} of {s.headcount} spot{s.headcount === 1 ? "" : "s"} open.
         {s.notes ? <><br />{s.notes}</> : null}
         <div style={{ marginTop: 6 }}><button type="submit">Claim shift</button></div>
       </form>
@@ -77,7 +96,9 @@ export default async function Worker({ searchParams }) {
         <input type="hidden" name="id" value={c.claim_id} />
         <b>{c.facility_name || c.facility_type}</b>, {fmt(c.starts_at)} to {fmt(c.ends_at)}
         <br />
-        You earn ${c.worker_rate}/hr. {LABEL[c.claim_status] || c.claim_status}
+        <Pay base={c.base_rate} bonus={c.bonus_pay} total={c.total_rate} totalPay={c.total_pay} start={c.starts_at} end={c.ends_at} />
+        <br />
+        {LABEL[c.claim_status] || c.claim_status}
         {c.shift_status === "cancelled" ? " (cancelled)" : ""}
         <div style={{ marginTop: 6 }}><button type="submit">Withdraw</button></div>
       </form>

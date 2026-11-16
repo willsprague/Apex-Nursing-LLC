@@ -39,6 +39,7 @@ export default async function Admin({ searchParams }) {
   const [{ data: workers }, { data: claims }, { data: feeValue }, { data: roles }, { data: facilities }, { data: shifts }] = await Promise.all([
     supabase.rpc("admin_list_workers"),
     supabase.rpc("admin_list_claims"),
+    supabase.rpc("admin_get_bonus_fee"),
     supabase.rpc("admin_get_fee"),
     supabase.from("shift_roles").select("role, min_bill_rate").order("role"),
     supabase.from("facilities").select("id, name, facility_type, contact_name, verified").order("created_at", { ascending: false }).limit(200),
@@ -56,7 +57,7 @@ export default async function Admin({ searchParams }) {
         <form key={c.claim_id} action={setClaimStatus} style={{ display: "block", padding: 8, borderBottom: "1px solid #ddd" }}>
           <input type="hidden" name="id" value={c.claim_id} />
           <b>{c.worker_name}</b> ({c.worker_role}, license {c.license_number}) for <b>{c.facility_name}</b>: {c.shift_role},{" "}
-          {when(c.starts_at)} to {when(c.ends_at)}, worker earns ${c.worker_rate}/hr
+          {when(c.starts_at)} to {when(c.ends_at)}, worker earns ${c.worker_rate}/hr (bonus included)
           <br />
           <small>Status: {c.claim_status}</small>
           <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
@@ -108,6 +109,11 @@ export default async function Admin({ searchParams }) {
         <input id="fee" name="value" type="number" step="0.5" min="0" max="60" defaultValue={feeValue ?? 25} />
         <button type="submit">Save fee</button>
       </form>
+      <form action={setBonusFee} style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+        <label htmlFor="bfee">Fee on facility bonuses (%)</label>
+        <input id="bfee" name="value" type="number" step="0.5" min="0" max="60" defaultValue={bonusFeeValue ?? 10} />
+        <button type="submit">Save bonus fee</button>
+      </form>
       <p style={{ marginTop: 16 }}>Lowest hourly rate a facility may offer, by role:</p>
       {(roles || []).map((r) => (
         <form key={r.role} action={setRoleMin} style={{ display: "flex", gap: 8, padding: 4 }}>
@@ -137,7 +143,7 @@ export default async function Admin({ searchParams }) {
           <input type="hidden" name="id" value={s.id} />
           <b>{s.facility_name}</b>: {s.role} x{s.headcount}, {when(s.starts_at)} to {when(s.ends_at)}
           <br />
-          Facility pays ${s.bill_rate}/hr, worker earns ${s.worker_rate}/hr ({s.fee_percent}% fee). {s.notes}
+          Facility pays ${s.bill_rate}/hr, worker earns ${s.worker_rate}/hr ({s.fee_percent}% fee).{Number(s.bonus_rate) > 0 ? ` Bonus: facility adds $${s.bonus_rate}/hr, worker gets $${s.bonus_worker}/hr (${s.bonus_fee_percent}% fee).` : ""} {s.notes}
           <br />
           <small>Status: {s.status}</small>
           <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
