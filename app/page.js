@@ -17,7 +17,7 @@ export default function Home() {
           <nav>
             <a href="#settings">Who we serve</a>
             <a href="#how">How it works</a>
-            <a href="/apply">For nurses and aides</a>
+            <a className="keep" href="/careers">Careers</a>
             <a href="/login">Sign in</a>
             <a className="btn" href="#contact">
               Request staffing
@@ -40,6 +40,9 @@ export default function Home() {
             </a>
             <a className="btn alt" href="#how">
               See how it works
+            </a>
+            <a className="btn alt" href="/careers">
+              Nurses and aides: apply
             </a>
           </div>
         </div>
@@ -86,6 +89,18 @@ export default function Home() {
               timesheets. Less overhead to cover means workers keep more of the rate you pay, and
               steady, well-paid staff are the ones who come back.
             </p>
+          </div>
+        </section>
+
+        <section id="careers">
+          <div className="wrap">
+            <h2>Nurses and care staff: work with {BRAND.name}</h2>
+            <p className="lead">
+              Pick up shifts at {BRAND.region} facilities, see your hourly rate before you claim a
+              shift, and keep more of what the facility pays. Applying is free.
+            </p>
+            <a className="btn" href="/apply">Apply now</a>{" "}
+            <a className="btn outline" href="/careers">Learn more</a>
           </div>
         </section>
 

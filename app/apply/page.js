@@ -9,7 +9,7 @@ export const metadata = {
 export default function Apply() {
   return (
     <main><section><div className="wrap">
-      <p><a href="/">&larr; Back to home</a></p>
+      <p><a href="/careers">&larr; Back to careers</a></p>
       <h2>Apply to work with {BRAND.name}</h2>
       <p className="lead">
         Nurses and care staff: tell us about yourself and the shifts you want. We review every
