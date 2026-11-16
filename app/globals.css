@@ -53,5 +53,11 @@ label{display:grid;gap:6px;font-weight:600}
 input,select{font:inherit;padding:12px 14px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--text)}
 #status{min-height:1.6em;color:var(--muted);margin:0}
 footer{border-top:1px solid var(--line);padding:32px 0;color:var(--muted);font-size:16px}
-@media(max-width:760px){nav a:not(.btn){display:none}.panel .two{grid-template-columns:1fr;gap:24px}.hero .btn.alt{margin:12px 0 0}.hero .wrap{padding-top:64px;padding-bottom:72px}section{padding:56px 0}.hero::after{right:-200px;opacity:.3}}
+@media(max-width:760px){nav a:not(.btn):not(.keep){display:none}.panel .two{grid-template-columns:1fr;gap:24px}.hero .btn.alt{margin:12px 0 0}.hero .wrap{padding-top:64px;padding-bottom:72px}section{padding:56px 0}.hero::after{right:-200px;opacity:.3}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+.btn.outline{background:transparent;color:var(--green);box-shadow:inset 0 0 0 1.5px var(--gold)}
+.cta-big{font-size:22px;padding:16px 36px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px}
+.cards h3{font-size:24px;margin-bottom:6px;color:var(--green)}
+.cards p{margin:0;color:var(--muted)}
