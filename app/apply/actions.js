@@ -1,5 +1,6 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { createSupabase } from "../../lib/supabase/server";
 import { APPLY_ROLES, EXPERIENCE, ID_TYPES, SETTINGS, AVAILABILITY, REFERENCE_RELATIONSHIPS } from "./options";
@@ -13,7 +14,7 @@ function text(fd, key) {
 
 export async function submitApplication(_prev, fd) {
   // Hidden field that only bots fill in. Pretend it worked and save nothing.
-  if (text(fd, "website")) return { ok: true, message: "Application received." };
+  if (text(fd, "website")) redirect("/apply/thanks");
 
   // The application belongs to a signed-in account. The email comes from that account.
   const session = await createSupabase();
@@ -38,50 +39,59 @@ export async function submitApplication(_prev, fd) {
   }));
   const consent = fd.get("consent") === "on";
 
+  // Sent back with any error so the form keeps what the person typed.
+  const values = {
+    name: full_name, phone, role, licenseState: license_state, license: license_number,
+    experience: years_experience, town, disciplined, settings, availability, idTypes, consent,
+    ref1Name: refs[0].name, ref1Rel: refs[0].rel, ref1Contact: refs[0].contact,
+    ref2Name: refs[1].name, ref2Rel: refs[1].rel, ref2Contact: refs[1].contact,
+  };
+  const fail = (message) => ({ ok: false, message, values });
+
   if (!full_name || !email || !phone || !role || !license_state || !license_number || !years_experience || !town) {
-    return { ok: false, message: "Fill in every field, then send the application again." };
+    return fail("Fill in every field, then send the application again.");
   }
   if (refs.some((r) => !r.name || !r.rel || !r.contact)) {
-    return { ok: false, message: "Give two references with a name, a professional relationship, and a phone or email." };
+    return fail("Give two references with a name, a professional relationship, and a phone or email.");
   }
   if (refs.some((r) => r.name.length > 100 || r.rel.length > 100 || r.contact.length > 254)) {
-    return { ok: false, message: "One of the reference answers is too long. Shorten it and try again." };
+    return fail("One of the reference answers is too long. Shorten it and try again.");
   }
   if (refs.some((r) => !REFERENCE_RELATIONSHIPS.includes(r.rel))) {
-    return { ok: false, message: "Choose each reference's professional relationship from the list." };
+    return fail("Choose each reference's professional relationship from the list.");
   }
   if (!["yes", "no"].includes(disciplined)) {
-    return { ok: false, message: "Answer the question about license discipline." };
+    return fail("Answer the question about license discipline.");
   }
   if (!idTypes.length || !idTypes.every((s) => ID_TYPES.includes(s))) {
-    return { ok: false, message: "Choose the forms of ID you can show when you are hired." };
+    return fail("Choose the forms of ID you can show when you are hired.");
   }
   if (!EMAIL.test(email) || email.length > 254) {
-    return { ok: false, message: "Enter a valid email address, such as name@example.com." };
+    return fail("Enter a valid email address, such as name@example.com.");
   }
   if (!/^[0-9+()\-.\s]{7,30}$/.test(phone)) {
-    return { ok: false, message: "Enter a phone number we can reach you on." };
+    return fail("Enter a phone number we can reach you on.");
   }
   if (full_name.length > 100 || town.length > 100 || license_number.length > 40 || license_state.length > 40) {
-    return { ok: false, message: "One of the answers is too long. Shorten it and try again." };
+    return fail("One of the answers is too long. Shorten it and try again.");
   }
   if (!APPLY_ROLES.includes(role) || !EXPERIENCE.includes(years_experience)) {
-    return { ok: false, message: "Choose your role and experience from the lists." };
+    return fail("Choose your role and experience from the lists.");
   }
   if (!settings.length || !settings.every((s) => SETTINGS.includes(s))) {
-    return { ok: false, message: "Choose at least one kind of facility you want to work in." };
+    return fail("Choose at least one kind of facility you want to work in.");
   }
   if (!availability.length || !availability.every((s) => AVAILABILITY.includes(s))) {
-    return { ok: false, message: "Choose when you are available." };
+    return fail("Choose when you are available.");
   }
   if (!consent) {
-    return { ok: false, message: "Check the box so we can contact you and look up your license." };
+    return fail("Check the box so we can contact you and look up your license.");
   }
 
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
-    return { ok: false, message: "This form is not connected yet, so nothing was sent. Please try again later." };
+    return fail("This form is not connected yet, so nothing was sent. Please try again later.");
   }
 
   const supabase = createClient(url, key, { auth: { persistSession: false } });
@@ -96,15 +106,12 @@ export async function submitApplication(_prev, fd) {
     consent,
   });
   if (error?.code === "23505") {
-    return { ok: true, message: "You have already applied. Check your application status on this page." };
+    redirect("/apply");
   }
   if (error) {
     // Log only the error code, never what the applicant typed.
     console.error("worker_applications insert failed:", error.code);
-    return { ok: false, message: "Your application was not saved. Send it again in a minute." };
+    return fail("Your application was not saved. Send it again in a minute.");
   }
-  return {
-    ok: true,
-    message: "Application received. We will review it and email you about next steps, usually within a few business days.",
-  };
+  redirect("/apply/thanks");
 }
