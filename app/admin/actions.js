@@ -16,6 +16,18 @@ export async function setStatus(formData) {
   revalidatePath("/admin");
 }
 
+const APP_STATUSES = ["new", "contacted", "background_check", "approved", "health_screening", "cleared", "declined"];
+
+export async function setApplicationStatus(formData) {
+  const id = String(formData.get("id") || "");
+  const status = String(formData.get("status") || "");
+  if (!APP_STATUSES.includes(status) || !/^[0-9a-f-]{36}$/i.test(id)) return;
+  const supabase = await createSupabase();
+  // The database only allows this if the signed-in user is an admin.
+  await supabase.from("worker_applications").update({ status }).eq("id", id);
+  revalidatePath("/admin");
+}
+
 export async function signOut() {
   const supabase = await createSupabase();
   await supabase.auth.signOut();

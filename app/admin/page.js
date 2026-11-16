@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabase } from "../../lib/supabase/server";
-import { setStatus, signOut, setFee, setRoleMin, setFacilityVerified, setShiftStatus, setWorkerVerified, setClaimStatus } from "./actions";
+import { setStatus, setApplicationStatus, signOut, setFee, setRoleMin, setFacilityVerified, setShiftStatus, setWorkerVerified, setClaimStatus } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin", robots: { index: false, follow: false } };
@@ -29,6 +29,12 @@ export default async function Admin() {
     .order("created_at", { ascending: false })
     .limit(200);
 
+  const { data: applications } = await supabase
+    .from("worker_applications")
+    .select("id, created_at, full_name, email, phone, role, license_state, license_number, years_experience, town, license_disciplined, id_types, ref1_name, ref1_relationship, ref1_contact, ref2_name, ref2_relationship, ref2_contact, settings, availability, status")
+    .order("created_at", { ascending: false })
+    .limit(200);
+
   const [{ data: workers }, { data: claims }, { data: feeValue }, { data: roles }, { data: facilities }, { data: shifts }] = await Promise.all([
     supabase.rpc("admin_list_workers"),
     supabase.rpc("admin_list_claims"),
@@ -54,6 +60,29 @@ export default async function Admin() {
           <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
             {c.claim_status === "claimed" && <button name="status" value="confirmed" type="submit">Confirm</button>}
             <button name="status" value="released" type="submit">Release</button>
+          </div>
+        </form>
+      ))}
+
+      <h2>Worker applications</h2>
+      <p className="lead">People who applied on /apply. Order: check the license and professional references, run the background check, mark Approved, and only then send for the physical and TB test. Once cleared, email them to sign in and create a worker account.</p>
+      {(applications || []).length === 0 && <p>No applications yet.</p>}
+      {(applications || []).map((a) => (
+        <form key={a.id} action={setApplicationStatus} style={{ display: "block", padding: 8, borderBottom: "1px solid #ddd" }}>
+          <input type="hidden" name="id" value={a.id} />
+          <b>{a.full_name}</b> ({a.role}), {a.license_state} license {a.license_number}, {a.years_experience}
+          <br />
+          <a href={`mailto:${a.email}`}>{a.email}</a>, {a.phone}, {a.town}
+          <br />
+          <small>License discipline: <b>{a.license_disciplined ? "YES, follow up" : "no"}</b>. ID available: {a.id_types}.</small>
+          <br />
+          <small>References: {a.ref1_name} ({a.ref1_relationship}, {a.ref1_contact}); {a.ref2_name} ({a.ref2_relationship}, {a.ref2_contact}).</small>
+          <br />
+          <small>Wants: {a.settings}. Available: {a.availability}. Applied {new Date(a.created_at).toLocaleDateString("en-US")}. Status: {a.status.replace("_", " ")}</small>
+          <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+            {[["contacted", "Contacted"], ["background_check", "Background check started"], ["approved", "Approved (passed vetting)"], ["health_screening", "Sent for physical and TB test"], ["cleared", "Cleared to work"], ["declined", "Declined"]].map(([st, label]) => (
+              <button key={st} name="status" value={st} type="submit">{label}</button>
+            ))}
           </div>
         </form>
       ))}
