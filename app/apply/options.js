@@ -24,3 +24,13 @@ export const SETTINGS = ["Long-term care", "Hospital", "Home health or clinic"];
 
 export const AVAILABILITY = ["Days", "Evenings", "Nights", "Weekends", "Any shift"];
 
+
+export const REFERENCE_RELATIONSHIPS = [
+  "Direct supervisor",
+  "Charge nurse or unit manager",
+  "Director of nursing or administrator",
+  "Clinical instructor or preceptor",
+  "Peer in the same role",
+  "Peer in a different role",
+  "Physician or other provider I worked with",
+];
