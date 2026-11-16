@@ -2,7 +2,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { createSupabase } from "../../lib/supabase/server";
-import { APPLY_ROLES, EXPERIENCE, ID_TYPES, SETTINGS, AVAILABILITY } from "./options";
+import { APPLY_ROLES, EXPERIENCE, ID_TYPES, SETTINGS, AVAILABILITY, REFERENCE_RELATIONSHIPS } from "./options";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -42,10 +42,13 @@ export async function submitApplication(_prev, fd) {
     return { ok: false, message: "Fill in every field, then send the application again." };
   }
   if (refs.some((r) => !r.name || !r.rel || !r.contact)) {
-    return { ok: false, message: "Give two references with a name, how you know them, and a phone or email." };
+    return { ok: false, message: "Give two references with a name, a professional relationship, and a phone or email." };
   }
   if (refs.some((r) => r.name.length > 100 || r.rel.length > 100 || r.contact.length > 254)) {
     return { ok: false, message: "One of the reference answers is too long. Shorten it and try again." };
+  }
+  if (refs.some((r) => !REFERENCE_RELATIONSHIPS.includes(r.rel))) {
+    return { ok: false, message: "Choose each reference's professional relationship from the list." };
   }
   if (!["yes", "no"].includes(disciplined)) {
     return { ok: false, message: "Answer the question about license discipline." };

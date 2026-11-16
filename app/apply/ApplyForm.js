@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { submitApplication } from "./actions";
-import { APPLY_ROLES, ID_TYPES, EXPERIENCE, SETTINGS, AVAILABILITY } from "./options";
+import { APPLY_ROLES, ID_TYPES, EXPERIENCE, SETTINGS, AVAILABILITY, REFERENCE_RELATIONSHIPS } from "./options";
 
 export default function ApplyForm() {
   const [state, action, pending] = useActionState(submitApplication, { ok: null, message: "" });
@@ -56,7 +56,13 @@ export default function ApplyForm() {
         <fieldset key={n}>
           <legend>Professional reference {n}: a current or former supervisor, manager or co-worker who has seen your clinical work. No family or friends.</legend>
           <label>Name <input name={`ref${n}Name`} required maxLength={100} /></label>
-          <label>How you know them <input name={`ref${n}Rel`} required maxLength={100} placeholder="Former charge nurse at ..." /></label>
+          <label>
+            Professional relationship
+            <select name={`ref${n}Rel`} required defaultValue="">
+              <option value="">Choose one</option>
+              {REFERENCE_RELATIONSHIPS.map((r) => <option key={r}>{r}</option>)}
+            </select>
+          </label>
           <label>Phone or email <input name={`ref${n}Contact`} required maxLength={254} /></label>
         </fieldset>
       ))}
