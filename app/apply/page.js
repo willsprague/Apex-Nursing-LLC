@@ -19,6 +19,41 @@ const STAGES = {
   declined: ["Not moving forward", "We are not able to move forward with your application right now. Thank you for applying."],
 };
 
+// The steps an applicant moves through, and which one each status means they are on.
+const TRACK = [
+  ["Account created", "Your free account is set up."],
+  ["Application submitted", "We have your application."],
+  ["Review and background check", "We check your license and professional references, then run a background check with your written permission."],
+  ["Approved", "You passed our review."],
+  ["Physical and TB test", "An urgent care partner does your physical and TB test. We only ask for this after you are approved."],
+  ["Cleared to work", "Create your worker account and start picking up shifts."],
+];
+const CURRENT = { new: 2, contacted: 2, background_check: 2, approved: 3, health_screening: 4, cleared: 5 };
+
+function Tracker({ status }) {
+  const current = CURRENT[status] ?? 2;
+  return (
+    <ol style={{ listStyle: "none", padding: 0, margin: "24px 0", display: "grid", gap: 16, maxWidth: 560 }}>
+      {TRACK.map(([title, detail], i) => {
+        const done = i < current || (status === "cleared" && i === current);
+        const here = i === current && status !== "cleared";
+        return (
+          <li key={title} style={{ display: "flex", gap: 14, opacity: !done && !here ? 0.55 : 1 }} aria-current={here ? "step" : undefined}>
+            <span aria-hidden="true" style={{ width: 28, height: 28, borderRadius: "50%", display: "grid", placeItems: "center", flex: "none", fontWeight: 700, border: "1.5px solid var(--gold)", background: done ? "var(--gold)" : "transparent", color: done ? "#10201A" : "inherit" }}>
+              {done ? "\u2713" : here ? "\u2022" : ""}
+            </span>
+            <span>
+              <b>{title}{here ? " (you are here)" : ""}{done ? " (done)" : ""}</b>
+              <br />
+              <span style={{ opacity: 0.85 }}>{detail}</span>
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
 function Steps({ current }) {
   const items = [
     "Create your account",
@@ -72,8 +107,9 @@ export default async function Apply() {
           <p className="lead">Signed in as {user.email}.</p>
           <h3>Your application: {(STAGES[application.status] || STAGES.new)[0]}</h3>
           <p>{(STAGES[application.status] || STAGES.new)[1]}</p>
+          {application.status !== "declined" && <Tracker status={application.status} />}
           {application.status === "cleared" && <p><a className="btn" href="/worker">Create my worker account</a></p>}
-          <p><small>Submitted {new Date(application.created_at).toLocaleDateString("en-US")}.</small></p>
+          <p><small>Submitted {new Date(application.created_at).toLocaleDateString("en-US")}. Questions? Reply to any email we send you.</small></p>
         </>
       )}
       {user && !application && (
