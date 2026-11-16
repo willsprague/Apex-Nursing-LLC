@@ -13,7 +13,7 @@ export default async function Welcome() {
       <h2>Welcome to Apixora</h2>
       <p className="lead">How will you use Apixora?</p>
       <p><a className="btn" href="/portal">I am a facility that needs staff</a></p>
-      <p><a className="btn alt" href="/worker">I am a nurse or aide looking for shifts</a></p>
+      <p><a className="btn alt" href="/apply">I am a nurse or aide looking for shifts</a></p>
     </div></section></main>
   );
 }

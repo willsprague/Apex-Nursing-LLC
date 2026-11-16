@@ -22,4 +22,4 @@ export async function middleware(request) {
   return response;
 }
 
-export const config = { matcher: ["/admin/:path*", "/portal/:path*", "/worker/:path*", "/welcome", "/login"] };
+export const config = { matcher: ["/admin/:path*", "/portal/:path*", "/worker/:path*", "/welcome", "/login", "/apply"] };

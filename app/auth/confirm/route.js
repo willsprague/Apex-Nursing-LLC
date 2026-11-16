@@ -8,6 +8,8 @@ export async function GET(request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
+  // Only these paths may be requested, so the link can't send people to another site.
+  const next = searchParams.get("next") === "/apply" ? "/apply" : null;
   const supabase = await createSupabase();
 
   let error = new Error("no token");
@@ -24,7 +26,8 @@ export async function GET(request) {
         supabase.from("worker_profiles").select("id").eq("id", user.id).maybeSingle(),
         supabase.from("facilities").select("id").eq("owner_id", user.id).maybeSingle(),
       ]);
-      if (worker) dest = "/worker";
+      if (next) dest = next;
+      else if (worker) dest = "/worker";
       else if (facility) dest = "/portal";
     }
     return NextResponse.redirect(`${origin}${dest}`);
