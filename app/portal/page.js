@@ -62,8 +62,7 @@ export default async function Portal({ searchParams }) {
     <h3 style={{ marginTop: 32 }}>Your shifts</h3>
     {(shifts || []).length === 0 && <p>No shifts yet.</p>}
     {(shifts || []).map((s) => (
-      <form key={s.id} action={cancelShift} style={{ display: "block", padding: 8, borderBottom: "1px solid #ddd" }}>
-        <input type="hidden" name="id" value={s.id} />
+      <div key={s.id} style={{ padding: 8, borderBottom: "1px solid #ddd" }}>
         <b>{s.role}</b> x{s.headcount}, {fmt(s.starts_at)} to {fmt(s.ends_at)}
         <br />
         You pay ${s.bill_rate}/hr{Number(s.bonus_rate) > 0 ? ` plus a $${s.bonus_rate}/hr bonus` : ""}. Status: {s.status}
