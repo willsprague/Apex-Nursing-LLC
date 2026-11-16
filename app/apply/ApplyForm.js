@@ -22,7 +22,6 @@ export default function ApplyForm() {
         <label>Website <input name="website" tabIndex={-1} autoComplete="off" /></label>
       </div>
       <label>Full name <input name="name" required maxLength={100} autoComplete="name" /></label>
-      <label>Email <input name="email" type="email" required maxLength={254} autoComplete="email" /></label>
       <label>Mobile phone <input name="phone" type="tel" required maxLength={30} autoComplete="tel" /></label>
       <label>Town or city where you live <input name="town" required maxLength={100} autoComplete="address-level2" /></label>
       <label>

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@supabase/supabase-js";
+import { createSupabase } from "../../lib/supabase/server";
 import { APPLY_ROLES, EXPERIENCE, ID_TYPES, SETTINGS, AVAILABILITY } from "./options";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -14,8 +15,14 @@ export async function submitApplication(_prev, fd) {
   // Hidden field that only bots fill in. Pretend it worked and save nothing.
   if (text(fd, "website")) return { ok: true, message: "Application received." };
 
+  // The application belongs to a signed-in account. The email comes from that account.
+  const session = await createSupabase();
+  const { data: { user } } = await session.auth.getUser();
+  if (!user || !user.email) {
+    return { ok: false, message: "Your sign-in expired. Create your account or sign in again, then apply." };
+  }
+  const email = user.email.toLowerCase();
   const full_name = text(fd, "name");
-  const email = text(fd, "email").toLowerCase();
   const phone = text(fd, "phone");
   const role = text(fd, "role");
   const license_state = text(fd, "licenseState");
@@ -76,7 +83,7 @@ export async function submitApplication(_prev, fd) {
 
   const supabase = createClient(url, key, { auth: { persistSession: false } });
   const { error } = await supabase.from("worker_applications").insert({
-    full_name, email, phone, role, license_state, license_number, years_experience, town,
+    user_id: user.id, full_name, email, phone, role, license_state, license_number, years_experience, town,
     license_disciplined: disciplined === "yes",
     id_types: idTypes.join(", "),
     ref1_name: refs[0].name, ref1_relationship: refs[0].rel, ref1_contact: refs[0].contact,
@@ -85,6 +92,9 @@ export async function submitApplication(_prev, fd) {
     availability: availability.join(", "),
     consent,
   });
+  if (error?.code === "23505") {
+    return { ok: true, message: "You have already applied. Check your application status on this page." };
+  }
   if (error) {
     // Log only the error code, never what the applicant typed.
     console.error("worker_applications insert failed:", error.code);

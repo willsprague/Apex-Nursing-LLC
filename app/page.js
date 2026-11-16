@@ -42,7 +42,7 @@ export default function Home() {
               See how it works
             </a>
             <a className="btn alt" href="/careers">
-              Nurses and aides: apply
+              Apply today
             </a>
           </div>
         </div>
@@ -99,7 +99,7 @@ export default function Home() {
               Pick up shifts at {BRAND.region} facilities, see your hourly rate before you claim a
               shift, and keep more of what the facility pays. Applying is free.
             </p>
-            <a className="btn" href="/apply">Apply now</a>{" "}
+            <a className="btn cta-big" href="/apply">Apply today</a>{" "}
             <a className="btn outline" href="/careers">Learn more</a>
           </div>
         </section>

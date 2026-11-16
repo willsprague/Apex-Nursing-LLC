@@ -30,7 +30,7 @@ export default function Careers() {
             <a href="/">Home</a>
             <a className="keep" href="/careers" aria-current="page">Careers</a>
             <a href="/login">Sign in</a>
-            <a className="btn" href="/apply">Apply now</a>
+            <a className="btn" href="/apply">Apply today</a>
           </nav>
         </div>
       </header>
@@ -44,7 +44,7 @@ export default function Careers() {
               facilities. You see the hourly rate before you claim a shift, and software handles
               the scheduling, so more of each shift&rsquo;s pay goes to you.
             </p>
-            <a className="btn cta-big" href="/apply">Apply now</a>
+            <a className="btn cta-big" href="/apply">Apply today</a>
             <a className="btn alt" href="#how">How applying works</a>
           </div>
         </div>
@@ -67,7 +67,7 @@ export default function Careers() {
             <ul>
               {ROLES.map((r) => <li key={r}>{r}</li>)}
             </ul>
-            <p><a className="btn" href="/apply">Apply now</a></p>
+            <p><a className="btn" href="/apply">Apply today</a></p>
           </div>
         </section>
 
@@ -75,12 +75,13 @@ export default function Careers() {
           <div className="wrap">
             <h2>How applying works</h2>
             <ol className="steps">
-              <li><b>Apply online</b><span>Tell us about your credential, license, experience and two professional references. It takes about ten minutes.</span></li>
+              <li><b>Create your free account</b><span>Enter your email and we send a one-time link. No password.</span></li>
+              <li><b>Fill out your application</b><span>Tell us about your credential, license, experience and two professional references. It takes about ten minutes.</span></li>
               <li><b>We check your background</b><span>We verify your license, call your references, and run a background check with your written permission.</span></li>
               <li><b>Health screening</b><span>Once you are approved, we send you to an urgent care partner for a physical and a TB test. We do not ask for these before you are approved.</span></li>
               <li><b>Start picking up shifts</b><span>Create your worker account and claim open shifts for your role.</span></li>
             </ol>
-            <p style={{ marginTop: 32 }}><a className="btn cta-big" href="/apply">Start your application</a></p>
+            <p style={{ marginTop: 32 }}><a className="btn cta-big" href="/apply">Apply today</a></p>
           </div>
         </section>
       </main>

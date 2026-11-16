@@ -14,6 +14,7 @@
 
 create table if not exists public.worker_applications (
   id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null unique references auth.users(id) on delete cascade,
   created_at    timestamptz not null default now(),
   full_name     text not null check (char_length(full_name) between 1 and 100),
   email         text not null check (char_length(email) between 3 and 254),
@@ -42,8 +43,18 @@ create table if not exists public.worker_applications (
 alter table public.worker_applications enable row level security;
 revoke all on public.worker_applications from anon, authenticated;
 
--- The website's server code inserts with the service role key. Staff read and update here.
-grant select, update (status, notes) on public.worker_applications to authenticated;
+-- The website's server code inserts with the service role key, using the signed-in
+-- user's id. Applicants can read their own application (everything except the staff
+-- notes column). Staff read and update all of them.
+grant select (id, user_id, created_at, full_name, email, phone, role, license_state, license_number,
+  years_experience, town, license_disciplined, id_types, ref1_name, ref1_relationship, ref1_contact,
+  ref2_name, ref2_relationship, ref2_contact, settings, availability, consent, status)
+  on public.worker_applications to authenticated;
+grant update (status, notes) on public.worker_applications to authenticated;
+
+drop policy if exists "applicants read own application" on public.worker_applications;
+create policy "applicants read own application" on public.worker_applications
+  for select to authenticated using (user_id = auth.uid());
 
 drop policy if exists "admins read applications" on public.worker_applications;
 create policy "admins read applications" on public.worker_applications
