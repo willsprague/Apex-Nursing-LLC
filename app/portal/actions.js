@@ -1,5 +1,6 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabase } from "../../lib/supabase/server";
 
@@ -57,7 +58,8 @@ export async function cancelShift(fd) {
   const id = text(fd, "id");
   if (!/^[0-9a-f-]{36}$/i.test(id)) return;
   const supabase = await createSupabase();
-  await supabase.rpc("cancel_shift", { p_id: id });
+  const { error } = await supabase.rpc("cancel_shift", { p_id: id });
+  if (error) redirect(`/portal?error=${encodeURIComponent(friendly(error, "Could not cancel the shift. Try again."))}`);
   revalidatePath("/portal");
 }
 
