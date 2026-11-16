@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import { submitApplication, APPLY_ROLES, ID_TYPES, EXPERIENCE, SETTINGS, AVAILABILITY } from "./actions";
+import { submitApplication } from "./actions";
+import { APPLY_ROLES, ID_TYPES, EXPERIENCE, SETTINGS, AVAILABILITY } from "./options";
 
 export default function ApplyForm() {
   const [state, action, pending] = useActionState(submitApplication, { ok: null, message: "" });
