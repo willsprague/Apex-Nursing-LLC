@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "Apixora",
+    "slug": "apixora",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": { "supportsTablet": false, "bundleIdentifier": "com.apixora.app" },
+    "android": { "package": "com.apixora.app" }
+  }
+}
