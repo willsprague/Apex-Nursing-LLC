@@ -1,4 +1,5 @@
 import { BRAND } from "../../lib/brand";
+import SiteHeader from "../../components/SiteHeader";
 
 export const metadata = {
   title: `Careers at ${BRAND.name}`,
@@ -17,23 +18,7 @@ const ROLES = [
 export default function Careers() {
   return (
     <>
-      <header>
-        <div className="wrap">
-          <a className="logo" href="/" aria-label="Home">
-            <img className="mark" src="/mark.webp" alt="" width="46" height="45" />
-            <span>
-              <b>{BRAND.name.toUpperCase()}</b>
-              <small>{BRAND.descriptor}</small>
-            </span>
-          </a>
-          <nav>
-            <a href="/">Home</a>
-            <a className="keep" href="/careers" aria-current="page">Careers</a>
-            <a href="/login">Sign in</a>
-            <a className="btn" href="/apply">Apply today</a>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader brand={BRAND.name} descriptor={BRAND.descriptor} />
 
       <main>
         <div className="hero">
@@ -94,6 +79,11 @@ export default function Careers() {
           </p>
         </div>
       </footer>
+      <div className="dockpad" aria-hidden="true" />
+      <div className="dock">
+        <a className="btn pill ghost" href="/">Home</a>
+        <a className="btn pill" href="/apply">Apply today</a>
+      </div>
     </>
   );
 }
