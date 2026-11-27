@@ -1,51 +1,87 @@
 import { BRAND } from "../lib/brand";
 import SettingsTabs from "../components/SettingsTabs";
 import LeadForm from "../components/LeadForm";
+import SiteHeader from "../components/SiteHeader";
+import HowTabs from "../components/HowTabs";
 
 export default function Home() {
   return (
     <>
-      <header>
-        <div className="wrap">
-          <a className="logo" href="#top" aria-label="Home">
-            <img className="mark" src="/mark.webp" alt="" width="46" height="45" />
-            <span>
-              <b>{BRAND.name.toUpperCase()}</b>
-              <small>{BRAND.descriptor}</small>
-            </span>
-          </a>
-          <nav>
-            <a href="#settings">Who we serve</a>
-            <a href="#how">How it works</a>
-            <a className="keep" href="/careers">Careers</a>
-            <a href="/login">Sign in</a>
-            <a className="btn" href="#contact">
-              Request staffing
-            </a>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader brand={BRAND.name} descriptor={BRAND.descriptor} />
 
       <main id="top">
-        <div className="hero">
+        <div className="hero2">
           <div className="wrap">
-            <h1>Healthcare staffing that fits how your facility works.</h1>
-            <p>
-              We are starting with long-term care in {BRAND.region} and building for hospitals,
-              home health, and clinics next. Software handles credential checks and scheduling,
-              so more of every shift&rsquo;s pay goes to the people doing the work.
+            <p className="eyebrow">{BRAND.region} &middot; Long-term care first</p>
+            <h1>Shifts filled by people you can verify.</h1>
+            <p className="sub">
+              Facilities post a shift. Credentialed nurses and aides see the pay and claim it.
+              Software handles the paperwork, so more of each shift goes to the person working it.
             </p>
-            <a className="btn" href="#settings">
-              Find your setting
-            </a>
-            <a className="btn alt" href="#how">
-              See how it works
-            </a>
-            <a className="btn alt" href="/careers">
-              Apply today
-            </a>
+            <div className="paths">
+              <a className="path fac" href="#contact">
+                <span className="eyebrow">For facilities</span>
+                <h2>I need to cover a shift</h2>
+                <p>Post the role, date and hours. We confirm each worker before they show up.</p>
+                <span className="go">Request staffing</span>
+              </a>
+              <a className="path nur" href="/apply">
+                <span className="eyebrow">For nurses and aides</span>
+                <h2>I want to work shifts</h2>
+                <p>Create a free account and apply. See the rate and total pay before you claim anything.</p>
+                <span className="go">Apply today</span>
+              </a>
+            </div>
+            <div className="trust">
+              <span>License and reference checks</span>
+              <span>Pay shown before you claim</span>
+              <span>Background check before approval</span>
+            </div>
           </div>
         </div>
+
+        <section id="board" className="band">
+          <div className="wrap">
+            <div className="head">
+              <p className="eyebrow">What workers see</p>
+              <h2>The shift, the pay and the total, up front</h2>
+              <p>
+                Nobody has to ask what a shift pays. When a facility adds a bonus, the old rate is
+                crossed out so a raise is easy to spot.
+              </p>
+            </div>
+            <div className="board">
+              <article className="shift">
+                <div className="top"><span className="chip">Long-term care</span><span className="chip">2 of 2 open</span></div>
+                <div className="role">Licensed Nursing Assistant</div>
+                <div className="when">Sat &middot; 7:00 AM to 3:00 PM</div>
+                <div className="pay"><strong>$24.00/hr</strong></div>
+                <div className="total">About $192 for 8 hours</div>
+                <a className="claim" href="/apply">Apply to claim shifts</a>
+              </article>
+              <article className="shift">
+                <div className="top"><span className="chip">Long-term care</span><span className="chip bonus">Bonus added</span></div>
+                <div className="role">Licensed Practical Nurse</div>
+                <div className="when">Sun &middot; 3:00 PM to 11:00 PM</div>
+                <div className="pay"><s>$38.00</s><strong>$43.00/hr</strong><small>includes $5 bonus</small></div>
+                <div className="total">About $344 for 8 hours</div>
+                <a className="claim" href="/apply">Apply to claim shifts</a>
+              </article>
+              <article className="shift">
+                <div className="top"><span className="chip">Long-term care</span><span className="chip">1 of 1 open</span></div>
+                <div className="role">Registered Nurse</div>
+                <div className="when">Mon &middot; 11:00 PM to 7:00 AM</div>
+                <div className="pay"><strong>$52.00/hr</strong></div>
+                <div className="total">About $416 for 8 hours</div>
+                <a className="claim" href="/apply">Apply to claim shifts</a>
+              </article>
+            </div>
+            <p className="note">
+              Example shifts to show the layout. Real rates are set by each facility, and we
+              confirm every claim before it counts.
+            </p>
+          </div>
+        </section>
 
         <section id="settings">
           <div className="wrap">
@@ -58,26 +94,60 @@ export default function Home() {
           </div>
         </section>
 
+        <section>
+          <div className="wrap">
+            <div className="head">
+              <p className="eyebrow">Why it works</p>
+              <h2>Built around trust on both sides</h2>
+            </div>
+            <div className="bento">
+              <div className="tile a dark">
+                <p className="eyebrow">Verification</p>
+                <h3>Checked before the first shift</h3>
+                <p>
+                  License, two professional references and a background check come first. The
+                  physical and TB test follow, only after approval.
+                </p>
+                <div className="chips">
+                  <span>License</span><span>References</span><span>Background check</span><span>Physical and TB</span>
+                </div>
+              </div>
+              <div className="tile b">
+                <p className="eyebrow">Transparency</p>
+                <h3>Workers see their pay before they claim</h3>
+                <p>
+                  Rate, bonus and total for the shift appear on the card. The facility name shows
+                  once a claim is confirmed.
+                </p>
+              </div>
+              <div className="tile c">
+                <div className="big">RN &middot; LPN &middot; LNA</div>
+                <h3>Roles to start</h3>
+                <p>Plus dietary, housekeeping and activities staff.</p>
+              </div>
+              <div className="tile d">
+                <div className="big">NH</div>
+                <h3>Local first</h3>
+                <p>We are starting in {BRAND.region} and will grow one state at a time.</p>
+              </div>
+              <div className="tile e">
+                <h3>Made for your phone</h3>
+                <p>
+                  Apply, check your status and claim shifts from any phone browser. A mobile app is
+                  on the way.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section id="how" className="band">
           <div className="wrap">
-            <h2>How it works</h2>
-            <p className="lead">
-              The same simple process in every setting, with software doing the scheduling work.
-            </p>
-            <ol className="steps">
-              <li>
-                <b>Post a shift</b>
-                <span>Tell us the role, date, and hours you need covered.</span>
-              </li>
-              <li>
-                <b>Verified workers respond</b>
-                <span>Qualified staff with current credentials pick up the shift.</span>
-              </li>
-              <li>
-                <b>Approve the timesheet</b>
-                <span>Review hours online and confirm when the shift is done.</span>
-              </li>
-            </ol>
+            <div className="head">
+              <p className="eyebrow">How it works</p>
+              <h2>Pick your side to see the steps</h2>
+            </div>
+            <HowTabs />
           </div>
         </section>
 
@@ -128,6 +198,11 @@ export default function Home() {
           </p>
         </div>
       </footer>
+      <div className="dockpad" aria-hidden="true" />
+      <div className="dock">
+        <a className="btn pill ghost" href="#contact">Request staffing</a>
+        <a className="btn pill" href="/apply">Apply today</a>
+      </div>
     </>
   );
 }
