@@ -83,3 +83,14 @@ The name, descriptor, and region are set in `lib/brand.js`. The logo files in `p
 ## Mobile app
 
 The Expo app in `mobile/` mirrors the website for nurses (apply, status, shifts) and facilities (post shifts, bonus). It needs migrations through `009_submit_application_rpc.sql`. See `mobile/README.md`.
+
+## AI intake interview (off by default)
+
+A short text chat after an applicant submits `/apply`. The AI asks job-related questions and writes a summary and flags for staff. It never approves or rejects anyone. Applicants see a notice first, can ask for a person instead, and are never asked about health, family, age, background or immigration status.
+
+To turn it on:
+1. Run `supabase/migrations/010_application_interviews.sql` in the Supabase SQL Editor.
+2. In Vercel add `ANTHROPIC_API_KEY` (create it in the Claude Console and set a small monthly spending limit) and set `AI_INTERVIEW_ENABLED` to `true`. Optional: `INTERVIEW_MODEL`.
+3. Redeploy. Until both are set the interview does not appear anywhere.
+
+Before real applicants use it, have the attorney review the notice text, the question list in `lib/interview.js`, and a retention period for transcripts. Staff read transcripts, summaries and flags on `/admin`.
