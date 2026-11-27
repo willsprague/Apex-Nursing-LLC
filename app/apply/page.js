@@ -2,6 +2,7 @@ import { createSupabase } from "../../lib/supabase/server";
 import { BRAND } from "../../lib/brand";
 import ApplyForm from "./ApplyForm";
 import SignUpForm from "./SignUpForm";
+import { interviewEnabled, serviceClient } from "../../lib/interview";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -78,6 +79,7 @@ export default async function Apply() {
   const { data: { user } } = await supabase.auth.getUser();
 
   let application = null;
+  let interview = null; // null = interview is off, otherwise none, in_progress, completed or human_requested
   if (user) {
     const { data } = await supabase
       .from("worker_applications")
@@ -85,6 +87,14 @@ export default async function Apply() {
       .eq("user_id", user.id)
       .maybeSingle();
     application = data;
+    if (application && interviewEnabled()) {
+      const { data: iv } = await serviceClient()
+        .from("application_interviews")
+        .select("status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      interview = iv ? iv.status : "none";
+    }
   }
 
   return (
@@ -108,6 +118,18 @@ export default async function Apply() {
           <h3>Your application: {(STAGES[application.status] || STAGES.new)[0]}</h3>
           <p>{(STAGES[application.status] || STAGES.new)[1]}</p>
           {application.status !== "declined" && <Tracker status={application.status} />}
+          {application.status !== "declined" && (interview === "none" || interview === "in_progress") && (
+            <div style={{ border: "1px solid var(--gold)", borderRadius: 8, padding: 16, maxWidth: 560, margin: "0 0 24px" }}>
+              <b>{interview === "in_progress" ? "Finish your short interview" : "Next step: a short interview"}</b>
+              <p style={{ margin: "6px 0 12px" }}>
+                A 10 minute text chat with our AI assistant helps us review your application faster.
+                People on our team make every decision, and you can ask for a person instead.
+              </p>
+              <a className="btn" href="/apply/interview">{interview === "in_progress" ? "Continue the interview" : "Start the interview"}</a>
+            </div>
+          )}
+          {interview === "completed" && <p>Interview: <b>done</b>. The team will review it.</p>}
+          {interview === "human_requested" && <p>Interview: a team member will reach out to arrange a conversation.</p>}
           {application.status === "cleared" && <p><a className="btn" href="/worker">Create my worker account</a></p>}
           <p><small>Submitted {new Date(application.created_at).toLocaleDateString("en-US")}. Questions? Reply to any email we send you.</small></p>
         </>

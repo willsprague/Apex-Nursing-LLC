@@ -36,6 +36,11 @@ export default async function Admin({ searchParams }) {
     .order("created_at", { ascending: false })
     .limit(200);
 
+  const { data: interviewRows } = await supabase
+    .from("application_interviews")
+    .select("application_id, status, summary, flags, messages, completed_at");
+  const interviews = Object.fromEntries((interviewRows || []).map((r) => [r.application_id, r]));
+
   const [{ data: workers }, { data: claims }, { data: feeValue }, { data: roles }, { data: facilities }, { data: shifts }] = await Promise.all([
     supabase.rpc("admin_list_workers"),
     supabase.rpc("admin_list_claims"),
@@ -82,6 +87,22 @@ export default async function Admin({ searchParams }) {
           <small>References: {a.ref1_name} ({a.ref1_relationship}, {a.ref1_contact}); {a.ref2_name} ({a.ref2_relationship}, {a.ref2_contact}).</small>
           <br />
           <small>Wants: {a.settings}. Available: {a.availability}. Applied {new Date(a.created_at).toLocaleDateString("en-US")}. Status: {a.status.replace("_", " ")}</small>
+          {interviews[a.id] && (
+            <details style={{ marginTop: 6 }}>
+              <summary>
+                <b>AI interview: {interviews[a.id].status.replace("_", " ")}</b>
+                {(interviews[a.id].flags || []).length > 0 && ` (${interviews[a.id].flags.length} flag${interviews[a.id].flags.length === 1 ? "" : "s"} to look at)`}
+              </summary>
+              <p style={{ margin: "6px 0" }}><small>Flags are for a person to check. The AI does not decide anything.</small></p>
+              {(interviews[a.id].flags || []).map((f, i) => (
+                <p key={i} style={{ margin: "2px 0" }}><b>{f.type.replaceAll("_", " ")}</b>: {f.detail}</p>
+              ))}
+              {interviews[a.id].summary && <p style={{ margin: "6px 0" }}><b>Summary:</b> {interviews[a.id].summary}</p>}
+              {(interviews[a.id].messages || []).map((m, i) => (
+                <p key={i} style={{ margin: "2px 0" }}><small><b>{m.role === "user" ? "Applicant" : "AI"}:</b> {m.content}</small></p>
+              ))}
+            </details>
+          )}
           <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
             {[["contacted", "Contacted"], ["background_check", "Background check started"], ["approved", "Approved (passed vetting)"], ["health_screening", "Sent for physical and TB test"], ["cleared", "Cleared to work"], ["declined", "Declined"]].map(([st, label]) => (
               <button key={st} name="status" value={st} type="submit">{label}</button>
