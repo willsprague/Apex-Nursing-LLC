@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabase } from "../../../lib/supabase/server";
+import { destinationFor } from "../destination";
 
 // The email link lands here. It trades the one-time code for a login cookie, then opens
 // /admin for staff, /worker or /portal for returning users, and /welcome for new ones. Works with Supabase's default email (?code=)
@@ -16,21 +17,6 @@ export async function GET(request) {
   if (code) ({ error } = await supabase.auth.exchangeCodeForSession(code));
   else if (tokenHash) ({ error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "email" }));
 
-  if (!error) {
-    const { data: isAdmin } = await supabase.rpc("is_admin");
-    let dest = "/welcome";
-    if (isAdmin) dest = "/admin";
-    else {
-      const { data: { user } } = await supabase.auth.getUser();
-      const [{ data: worker }, { data: facility }] = await Promise.all([
-        supabase.from("worker_profiles").select("id").eq("id", user.id).maybeSingle(),
-        supabase.from("facilities").select("id").eq("owner_id", user.id).maybeSingle(),
-      ]);
-      if (next) dest = next;
-      else if (worker) dest = "/worker";
-      else if (facility) dest = "/portal";
-    }
-    return NextResponse.redirect(`${origin}${dest}`);
-  }
+  if (!error) return NextResponse.redirect(`${origin}${await destinationFor(supabase, next)}`);
   return NextResponse.redirect(`${origin}/login?error=link`);
 }

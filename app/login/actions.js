@@ -1,6 +1,8 @@
 "use server";
 
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { destinationFor } from "../auth/destination";
 import { createSupabase } from "../../lib/supabase/server";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -23,5 +25,18 @@ export async function sendLink(_prev, formData) {
   });
   if (error) console.error("sign-in link failed:", error.code || error.status);
   // Same answer whether or not the email exists, so strangers can't test which emails are admins.
-  return { ok: true, message: "If that email has access, a sign-in link is on its way." };
+  return { ok: true, sent: true, email, next: next ? "/apply" : "", message: "Check your email. Enter the code from it below, or tap the link." };
+}
+
+export async function verifyCode(_prev, formData) {
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const token = String(formData.get("code") || "").replace(/\s/g, "");
+  const next = String(formData.get("next") || "") === "/apply" ? "/apply" : null;
+  if (!EMAIL.test(email) || !/^[0-9]{4,10}$/.test(token)) {
+    return { ok: true, sent: true, email, next: next || "", message: "Enter the numbers from the email." };
+  }
+  const supabase = await createSupabase();
+  const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+  if (error) return { ok: true, sent: true, email, next: next || "", message: "That code did not work. Check it, or send a new one." };
+  redirect(await destinationFor(supabase, next));
 }
