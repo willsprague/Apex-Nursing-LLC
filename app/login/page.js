@@ -8,7 +8,7 @@ export default function Login() {
       <section>
         <div className="wrap">
           <h2>Sign in</h2>
-          <p className="lead">Facilities and staff: enter your email and we will send a one-time link. New here? The same link creates your account.</p>
+          <p className="lead">Facilities and staff: enter your email and we will send a code. New here? The same code creates your account.</p>
           <LoginForm />
         </div>
       </section>
