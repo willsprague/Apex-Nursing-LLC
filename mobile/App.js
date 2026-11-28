@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, View, Text } from "react-native";
+import { ActivityIndicator, View, Text } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { supabase } from "./src/supabase";
 import SignIn from "./src/SignIn";
@@ -10,7 +10,7 @@ import Status from "./src/Status";
 import Home from "./src/Home";
 import Worker from "./src/Worker";
 import Facility from "./src/Facility";
-import { colors, styles } from "./src/ui";
+import { TabBar, styles } from "./src/ui";
 
 export default function App() {
   const [session, setSession] = useState(undefined); // undefined = still loading
@@ -48,7 +48,7 @@ export default function App() {
 
   let screen;
   if (session === undefined) screen = <Loading />;
-  else if (!session && !showSignIn) screen = <Landing onSignIn={() => setShowSignIn(true)} onApply={() => { setPick("nurse"); setShowSignIn(true); }} />;
+  else if (!session && !showSignIn) screen = <Landing onSignIn={() => setShowSignIn(true)} onApply={() => { setPick("nurse"); setShowSignIn(true); }} onFacility={() => { setPick("facility"); setShowSignIn(true); }} />;
   else if (!session) screen = <SignIn onBack={() => { setShowSignIn(false); setPick(null); }} />;
   else if (error) screen = <View style={styles.screen}><Text style={styles.p}>Could not load your account. Check your connection and reopen the app.</Text></View>;
   else if (me === undefined) screen = <Loading />;
@@ -62,7 +62,7 @@ export default function App() {
             ? <Home app={me.app} onStatus={() => setTab("status")} />
             : <Status app={me.app} onChanged={load} />}
         </View>
-        <TabBar tab={tab} onChange={setTab} />
+        <TabBar tab={tab} onChange={setTab} items={[["home", "Home"], ["status", "Application"]]} />
       </View>
     );
   }
@@ -74,20 +74,6 @@ export default function App() {
       <StatusBar style="dark" />
       {screen}
     </>
-  );
-}
-
-function TabBar({ tab, onChange }) {
-  const items = [["home", "Home"], ["status", "Application"]];
-  return (
-    <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: colors.line, backgroundColor: "#fff", paddingBottom: 18 }}>
-      {items.map(([key, label]) => (
-        <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: tab === key }}
-          onPress={() => onChange(key)} style={{ flex: 1, alignItems: "center", paddingVertical: 14 }}>
-          <Text style={{ fontWeight: tab === key ? "700" : "400", color: tab === key ? colors.green : "#555" }}>{label}</Text>
-        </Pressable>
-      ))}
-    </View>
   );
 }
 

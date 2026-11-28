@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { supabase } from "./supabase";
-import { Button, Choice, Field, friendly, styles } from "./ui";
+import { Button, Choice, Field, colors, friendly, styles } from "./ui";
 import { STAGES } from "./options";
 
 export default function Status({ app, onChanged }) {
@@ -16,7 +16,7 @@ export default function Status({ app, onChanged }) {
   }
 
   return (
-    <ScrollView style={styles.screen} refreshControl={<RefreshControl refreshing={busy} onRefresh={refresh} />}>
+    <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: 24 }} refreshControl={<RefreshControl refreshing={busy} onRefresh={refresh} />}>
       <Text style={styles.h1}>{declined ? "Your application" : "Application status"}</Text>
       {declined ? (
         <Text style={styles.p}>
@@ -25,13 +25,27 @@ export default function Status({ app, onChanged }) {
       ) : (
         <>
           <Text style={styles.p}>Thanks, {app.full_name}. We will update this page as you move forward. Pull down to refresh.</Text>
-          <View style={{ marginVertical: 8 }}>
-            <Text style={styles.p}>✓ Account created</Text>
-            {STAGES.map(([k, label], i) => (
-              <Text key={k} style={[styles.p, i > idx && { opacity: 0.45 }, i === idx && { fontWeight: "700" }]}>
-                {i <= idx ? "✓" : "○"} {label}
-              </Text>
-            ))}
+          <View style={[styles.card, { paddingVertical: 18 }]}>
+            {[["account", "Account created"], ...STAGES].map(([k, label], j) => {
+              const i = j - 1; // -1 is the account row, always done
+              const done = i < idx, now = i === idx, last = j === STAGES.length;
+              return (
+                <View key={k} style={{ flexDirection: "row", gap: 14 }}>
+                  <View style={{ alignItems: "center" }}>
+                    <View style={{ width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center",
+                      backgroundColor: done ? colors.green : "#fff", borderWidth: now ? 3 : done ? 0 : 2,
+                      borderColor: now ? colors.gold : "#cfc7b2" }}>
+                      {done ? <Text style={{ color: "#fff", fontWeight: "700" }}>✓</Text> : null}
+                    </View>
+                    {!last && <View style={{ width: 2, height: 24, backgroundColor: done ? colors.green : "#d8d0bd" }} />}
+                  </View>
+                  <View style={{ flex: 1, paddingBottom: last ? 0 : 12 }}>
+                    <Text style={{ fontSize: 16, fontWeight: "700", color: done || now ? colors.ink : colors.muted }}>{label}</Text>
+                    {now ? <Text style={styles.muted}>In progress</Text> : null}
+                  </View>
+                </View>
+              );
+            })}
           </View>
           {app.status === "approved" && (
             <Text style={styles.p}>You are approved. Next is a physical and TB test at an urgent care. We will send details.</Text>
