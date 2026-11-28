@@ -1,20 +1,24 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, View, Text } from "react-native";
+import { ActivityIndicator, Pressable, View, Text } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { supabase } from "./src/supabase";
 import SignIn from "./src/SignIn";
+import Landing from "./src/Landing";
 import Welcome from "./src/Welcome";
 import Apply from "./src/Apply";
 import Status from "./src/Status";
+import Home from "./src/Home";
 import Worker from "./src/Worker";
 import Facility from "./src/Facility";
-import { styles } from "./src/ui";
+import { colors, styles } from "./src/ui";
 
 export default function App() {
   const [session, setSession] = useState(undefined); // undefined = still loading
   const [me, setMe] = useState(undefined);            // { facility, worker, app } once loaded
   const [pick, setPick] = useState(null);             // "nurse" | "facility" chosen on the welcome screen
   const [error, setError] = useState(false);
+  const [showSignIn, setShowSignIn] = useState(false); // signed-out visitors see the front page first
+  const [tab, setTab] = useState("home");              // applicants switch between "home" and "status"
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -36,19 +40,33 @@ export default function App() {
   }, [uid]);
 
   useEffect(() => {
-    setPick(null);
+    setTab("home");
+    // Signing out returns to the front page. Signing in keeps the "Apply today" choice made there.
+    if (!uid) { setPick(null); setShowSignIn(false); }
     if (uid) { setMe(undefined); load(); } else setMe(undefined);
   }, [uid, load]);
 
   let screen;
   if (session === undefined) screen = <Loading />;
-  else if (!session) screen = <SignIn />;
+  else if (!session && !showSignIn) screen = <Landing onSignIn={() => setShowSignIn(true)} onApply={() => { setPick("nurse"); setShowSignIn(true); }} />;
+  else if (!session) screen = <SignIn onBack={() => { setShowSignIn(false); setPick(null); }} />;
   else if (error) screen = <View style={styles.screen}><Text style={styles.p}>Could not load your account. Check your connection and reopen the app.</Text></View>;
   else if (me === undefined) screen = <Loading />;
   else if (me.facility || pick === "facility") screen = <Facility user={session.user} />;
   else if (me.worker) screen = <Worker me={me.worker} />;
-  else if (me.app) screen = <Status app={me.app} onChanged={load} />;
-  else if (pick === "nurse") screen = <Apply onDone={load} />;
+  else if (me.app) {
+    screen = (
+      <View style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
+          {tab === "home"
+            ? <Home app={me.app} onStatus={() => setTab("status")} />
+            : <Status app={me.app} onChanged={load} />}
+        </View>
+        <TabBar tab={tab} onChange={setTab} />
+      </View>
+    );
+  }
+  else if (pick === "nurse") screen = <Apply onDone={load} onBack={() => setPick(null)} />;
   else screen = <Welcome onPick={setPick} />;
 
   return (
@@ -56,6 +74,20 @@ export default function App() {
       <StatusBar style="dark" />
       {screen}
     </>
+  );
+}
+
+function TabBar({ tab, onChange }) {
+  const items = [["home", "Home"], ["status", "Application"]];
+  return (
+    <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: colors.line, backgroundColor: "#fff", paddingBottom: 18 }}>
+      {items.map(([key, label]) => (
+        <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: tab === key }}
+          onPress={() => onChange(key)} style={{ flex: 1, alignItems: "center", paddingVertical: 14 }}>
+          <Text style={{ fontWeight: tab === key ? "700" : "400", color: tab === key ? colors.green : "#555" }}>{label}</Text>
+        </Pressable>
+      ))}
+    </View>
   );
 }
 

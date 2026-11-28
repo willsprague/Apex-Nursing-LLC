@@ -3,12 +3,12 @@ import { View, Text, ScrollView } from "react-native";
 import { supabase } from "./supabase";
 import { Button, Choice, Field, friendly, styles } from "./ui";
 import {
-  APPLY_ROLES, EXPERIENCE, ID_TYPES, SETTINGS, AVAILABILITY, REFERENCE_RELATIONSHIPS,
+  APPLY_ROLES, STATES, EXPERIENCE, ID_TYPES, SETTINGS, AVAILABILITY, REFERENCE_RELATIONSHIPS,
 } from "./options";
 
-export default function Apply({ onDone }) {
+export default function Apply({ onDone, onBack }) {
   const [f, setF] = useState({
-    name: "", phone: "", role: "", licenseState: "NH", license: "", experience: "", town: "",
+    name: "", phone: "", role: "", licenseState: "NH", license: "", experience: "", town: "", state: "NH", zip: "",
     disciplined: "", idTypes: [], settings: [], availability: [],
     ref1Name: "", ref1Rel: "", ref1Contact: "", ref2Name: "", ref2Rel: "", ref2Contact: "",
     consent: false, referenceConsent: false,
@@ -21,6 +21,9 @@ export default function Apply({ onDone }) {
   const set = (k) => (v) => setF((p) => ({ ...p, [k]: v }));
 
   async function send() {
+    const state = f.state.trim().toUpperCase();
+    if (!STATES.includes(state)) return setMsg("Enter your state as two letters, like NH.");
+    if (!/^[0-9]{5}(-[0-9]{4})?$/.test(f.zip.trim())) return setMsg("Enter your 5 digit ZIP code.");
     const need = [f.name, f.phone, f.role, f.licenseState, f.license, f.experience, f.town,
       f.disciplined, f.ref1Name, f.ref1Rel, f.ref1Contact, f.ref2Name, f.ref2Rel, f.ref2Contact];
     if (need.some((v) => !String(v).trim()) || !f.idTypes.length || !f.settings.length || !f.availability.length) {
@@ -44,6 +47,7 @@ export default function Apply({ onDone }) {
       p: {
         full_name: f.name, phone: f.phone, role: f.role, license_state: f.licenseState,
         license_number: f.license, years_experience: f.experience, town: f.town,
+        state, zip: f.zip.trim(),
         license_disciplined: f.disciplined === "yes", id_types: f.idTypes.join(", "),
         ref1_name: f.ref1Name, ref1_relationship: f.ref1Rel, ref1_contact: f.ref1Contact,
         ref2_name: f.ref2Name, ref2_relationship: f.ref2Rel, ref2_contact: f.ref2Contact,
@@ -68,6 +72,10 @@ export default function Apply({ onDone }) {
       <Field value={f.phone} onChangeText={set("phone")} keyboardType="phone-pad" autoComplete="tel" />
       <Text style={styles.label}>Town</Text>
       <Field value={f.town} onChangeText={set("town")} />
+      <Text style={styles.label}>State (two letters)</Text>
+      <Field value={f.state} onChangeText={set("state")} autoCapitalize="characters" maxLength={2} autoComplete="postal-address-region" />
+      <Text style={styles.label}>ZIP code</Text>
+      <Field value={f.zip} onChangeText={set("zip")} keyboardType="number-pad" maxLength={10} autoComplete="postal-code" />
       <Text style={styles.label}>Credential type</Text>
       <Choice options={APPLY_ROLES} value={f.role} onChange={set("role")} />
       <Text style={styles.label}>License state</Text>
@@ -116,6 +124,7 @@ export default function Apply({ onDone }) {
         onChange={() => set("referenceConsent")(!f.referenceConsent)} />
       {!!msg && <Text style={styles.error} accessibilityRole="alert">{msg}</Text>}
       <Button title={busy ? "Sending..." : "Send application"} onPress={send} disabled={busy} />
+      {onBack && <Button title="Back" secondary onPress={onBack} />}
       <Button title="Sign out" secondary onPress={() => supabase.auth.signOut()} />
       <View style={{ height: 40 }} />
     </ScrollView>

@@ -5,7 +5,7 @@ import { Button, Field, styles } from "./ui";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function SignIn() {
+export default function SignIn({ onBack }) {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [sent, setSent] = useState(false);
@@ -52,6 +52,7 @@ export default function SignIn() {
         </>
       )}
       {!!msg && <Text style={styles.error}>{msg}</Text>}
+      {onBack && !sent && <Button title="Back" secondary onPress={onBack} />}
     </View>
   );
 }

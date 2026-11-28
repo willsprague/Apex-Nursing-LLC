@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { submitApplication } from "./actions";
-import { APPLY_ROLES, ID_TYPES, EXPERIENCE, SETTINGS, AVAILABILITY, REFERENCE_RELATIONSHIPS } from "./options";
+import { APPLY_ROLES, STATES, ID_TYPES, EXPERIENCE, SETTINGS, AVAILABILITY, REFERENCE_RELATIONSHIPS } from "./options";
 
 export default function ApplyForm() {
   const [state, action, pending] = useActionState(submitApplication, { ok: null, message: "" });
@@ -26,6 +26,13 @@ export default function ApplyForm() {
       <label>Full name <input name="name" defaultValue={v.name} required maxLength={100} autoComplete="name" /></label>
       <label>Mobile phone <input name="phone" type="tel" defaultValue={v.phone} required maxLength={30} autoComplete="tel" /></label>
       <label>Town or city where you live <input name="town" defaultValue={v.town} required maxLength={100} autoComplete="address-level2" /></label>
+      <label>
+        State
+        <select name="state" required defaultValue={v.state || "NH"} autoComplete="address-level1">
+          {STATES.map((st) => <option key={st}>{st}</option>)}
+        </select>
+      </label>
+      <label>ZIP code <input name="zip" defaultValue={v.zip} required maxLength={10} inputMode="numeric" autoComplete="postal-code" pattern="[0-9]{5}(-[0-9]{4})?" /></label>
       <label>
         Credential type
         <select name="role" required defaultValue={v.role || ""}>
