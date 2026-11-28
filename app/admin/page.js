@@ -41,7 +41,7 @@ export default async function Admin({ searchParams }) {
     .select("application_id, status, summary, flags, messages, completed_at");
   const interviews = Object.fromEntries((interviewRows || []).map((r) => [r.application_id, r]));
 
-  const [{ data: workers }, { data: claims }, { data: feeValue }, { data: roles }, { data: facilities }, { data: shifts }] = await Promise.all([
+  const [{ data: workers }, { data: claims }, { data: bonusFeeValue }, { data: feeValue }, { data: roles }, { data: facilities }, { data: shifts }] = await Promise.all([
     supabase.rpc("admin_list_workers"),
     supabase.rpc("admin_list_claims"),
     supabase.rpc("admin_get_bonus_fee"),
