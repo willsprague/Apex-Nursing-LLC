@@ -1,15 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
 import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { supabase } from "./supabase";
-import { Button, ShiftCard, TabBar, colors, friendly, styles, when } from "./ui";
+import { Button, Choice, ShiftCard, TabBar, colors, friendly, styles, when } from "./ui";
 
 const LABEL = { claimed: "Waiting for our confirmation", confirmed: "Confirmed" };
+const REASONS = ["Rate too low for the distance", "Rate too low for the work", "Ratio too high",
+  "Shift time does not work", "Too far", "Something else"];
 const hours = (a, b) => Math.round(((new Date(b) - new Date(a)) / 3600000) * 100) / 100;
 
 // Map a shift row from the database to what ShiftCard shows. Pay comes first.
 const card = (s, footer, pill) => ({
   role: s.role || s.facility_name || s.facility_type,
   when: `${when(s.starts_at)} to ${when(s.ends_at)} · ${hours(s.starts_at, s.ends_at)} hrs`,
+  unit: s.unit_name ? [s.unit_name, s.unit_floor, s.unit_type, s.patients ? `${s.patients} patients` : null].filter(Boolean).join(" · ") : undefined,
+  ratio: s.ratio_to ? `1 nurse to ${s.ratio_to}${s.aides_on != null ? ` · ${s.aides_on} aides on` : ""}` : undefined,
   base: s.base_rate, rate: s.total_rate, bonus: s.bonus_pay, total: s.total_pay, footer, pill,
 });
 
@@ -19,6 +23,8 @@ export default function Worker({ me }) {
   const [mine, setMine] = useState([]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
+  const [passing, setPassing] = useState(null); // shift being passed on
+  const [why, setWhy] = useState([]);
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -46,6 +52,22 @@ export default function Worker({ me }) {
     );
   }
 
+  if (passing) {
+    return (
+      <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: 24 }}>
+        <Text style={styles.h1}>Not for you? Tell us why</Text>
+        <Text style={styles.p}>Pick all that fit. We hide shifts like this, and the facility sees only totals, never your name.</Text>
+        <Choice multi options={REASONS} value={why} onChange={setWhy} />
+        {!!msg && <Text style={styles.error} accessibilityRole="alert">{msg}</Text>}
+        <Button title="Pass on this shift" disabled={!why.length} onPress={async () => {
+          await run("pass_shift", { p_shift: passing, p_reasons: why }, "Could not save that. Try again.");
+          setPassing(null); setWhy([]);
+        }} />
+        <Button title="Back" secondary onPress={() => { setPassing(null); setWhy([]); }} />
+      </ScrollView>
+    );
+  }
+
   const refresh = <RefreshControl refreshing={busy} onRefresh={load} />;
   let body;
   if (tab === "shifts") {
@@ -57,8 +79,9 @@ export default function Worker({ me }) {
         {open.length === 0 && <Text style={styles.p}>No open shifts right now. Pull down to refresh.</Text>}
         {open.map((s) => (
           <ShiftCard key={s.id} s={card({ ...s, facility_name: null }, [s.notes].filter(Boolean).join(" · ") || undefined,
-            `${s.spots_left} of ${s.headcount} open`)}>
+            undefined)}>
             <Button title="Claim this shift" onPress={() => run("claim_shift", { p_shift: s.id }, "Could not claim this shift. Try again.")} />
+            <Button title="Not for me" secondary onPress={() => setPassing(s.id)} />
           </ShiftCard>
         ))}
         <Text style={styles.muted}>We confirm each claim before it counts, and tell you the facility name once it is confirmed.</Text>
