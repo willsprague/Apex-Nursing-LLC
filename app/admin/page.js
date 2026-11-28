@@ -32,7 +32,7 @@ export default async function Admin({ searchParams }) {
 
   const { data: applications } = await supabase
     .from("worker_applications")
-    .select("id, created_at, full_name, email, phone, role, license_state, license_number, years_experience, town, license_disciplined, id_types, ref1_name, ref1_relationship, ref1_contact, ref2_name, ref2_relationship, ref2_contact, settings, availability, status")
+    .select("id, created_at, full_name, email, phone, role, license_state, license_number, years_experience, town, state, zip, license_disciplined, id_types, ref1_name, ref1_relationship, ref1_contact, ref2_name, ref2_relationship, ref2_contact, settings, availability, work_history, reference_consent, status")
     .order("created_at", { ascending: false })
     .limit(200);
 
@@ -80,11 +80,17 @@ export default async function Admin({ searchParams }) {
           <input type="hidden" name="id" value={a.id} />
           <b>{a.full_name}</b> ({a.role}), {a.license_state} license {a.license_number}, {a.years_experience}
           <br />
-          <a href={`mailto:${a.email}`}>{a.email}</a>, {a.phone}, {a.town}
+          <a href={`mailto:${a.email}`}>{a.email}</a>, {a.phone}, {a.town}{a.state ? `, ${a.state} ${a.zip || ""}` : ""}
           <br />
           <small>License discipline: <b>{a.license_disciplined ? "YES, follow up" : "no"}</b>. ID available: {a.id_types}.</small>
           <br />
-          <small>References: {a.ref1_name} ({a.ref1_relationship}, {a.ref1_contact}); {a.ref2_name} ({a.ref2_relationship}, {a.ref2_contact}).</small>
+          <small>
+            Work history: {(a.work_history || []).length
+              ? a.work_history.map((j) => `${j.title} at ${j.employer} (${j.from} to ${j.to})`).join("; ")
+              : "not given (older application)"}.
+          </small>
+          <br />
+          <small>References: {a.ref1_name} ({a.ref1_relationship}, {a.ref1_contact}); {a.ref2_name} ({a.ref2_relationship}, {a.ref2_contact}). Permission to contact references and past employers: <b>{a.reference_consent ? "yes" : "not recorded"}</b>.</small>
           <br />
           <small>Wants: {a.settings}. Available: {a.availability}. Applied {new Date(a.created_at).toLocaleDateString("en-US")}. Status: {a.status.replace("_", " ")}</small>
           {interviews[a.id] && (

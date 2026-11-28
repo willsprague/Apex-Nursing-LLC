@@ -82,7 +82,7 @@ The name, descriptor, and region are set in `lib/brand.js`. The logo files in `p
 
 ## Mobile app
 
-The Expo app in `mobile/` mirrors the website for nurses (apply, status, shifts) and facilities (post shifts, bonus). It needs migrations through `009_submit_application_rpc.sql`. See `mobile/README.md`.
+The Expo app in `mobile/` mirrors the website for nurses (apply, status, shifts) and facilities (post shifts, bonus). It needs migrations through `012_application_state_zip.sql` (011 adds work history and reference permission, 012 adds state and ZIP, and both update the phone's `submit_application`). See `mobile/README.md`.
 
 ## AI intake interview (off by default)
 

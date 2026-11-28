@@ -3,36 +3,56 @@ import { View, Text, ScrollView } from "react-native";
 import { supabase } from "./supabase";
 import { Button, Choice, Field, friendly, styles } from "./ui";
 import {
-  APPLY_ROLES, EXPERIENCE, ID_TYPES, SETTINGS, AVAILABILITY, REFERENCE_RELATIONSHIPS,
+  APPLY_ROLES, STATES, EXPERIENCE, ID_TYPES, SETTINGS, AVAILABILITY, REFERENCE_RELATIONSHIPS,
 } from "./options";
 
-export default function Apply({ onDone }) {
+export default function Apply({ onDone, onBack }) {
   const [f, setF] = useState({
-    name: "", phone: "", role: "", licenseState: "NH", license: "", experience: "", town: "",
+    name: "", phone: "", role: "", licenseState: "NH", license: "", experience: "", town: "", state: "NH", zip: "",
     disciplined: "", idTypes: [], settings: [], availability: [],
     ref1Name: "", ref1Rel: "", ref1Contact: "", ref2Name: "", ref2Rel: "", ref2Contact: "",
-    consent: false,
+    consent: false, referenceConsent: false,
+    job1Employer: "", job1Title: "", job1From: "", job1To: "",
+    job2Employer: "", job2Title: "", job2From: "", job2To: "",
+    job3Employer: "", job3Title: "", job3From: "", job3To: "",
   });
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const set = (k) => (v) => setF((p) => ({ ...p, [k]: v }));
 
   async function send() {
+    const state = f.state.trim().toUpperCase();
+    if (!STATES.includes(state)) return setMsg("Enter your state as two letters, like NH.");
+    if (!/^[0-9]{5}(-[0-9]{4})?$/.test(f.zip.trim())) return setMsg("Enter your 5 digit ZIP code.");
     const need = [f.name, f.phone, f.role, f.licenseState, f.license, f.experience, f.town,
       f.disciplined, f.ref1Name, f.ref1Rel, f.ref1Contact, f.ref2Name, f.ref2Rel, f.ref2Contact];
     if (need.some((v) => !String(v).trim()) || !f.idTypes.length || !f.settings.length || !f.availability.length) {
       return setMsg("Fill in every question, then send the application again.");
     }
+    const jobs = [1, 2, 3].map((n) => ({
+      employer: f[`job${n}Employer`].trim(), title: f[`job${n}Title`].trim(),
+      from: f[`job${n}From`].trim(), to: f[`job${n}To`].trim(),
+    }));
+    const started = jobs.filter((j) => j.employer || j.title || j.from || j.to);
+    if (!jobs[0].employer || !jobs[0].title || !jobs[0].from || !jobs[0].to) {
+      return setMsg("Add your most recent job with the employer, job title, and when you started and ended.");
+    }
+    if (started.some((j) => !j.employer || !j.title || !j.from || !j.to)) {
+      return setMsg("Finish each job you started: employer, job title, start and end.");
+    }
     if (!f.consent) return setMsg("Check the box so we can contact you and look up your license.");
+    if (!f.referenceConsent) return setMsg("Check the box so we can contact your references and past employers.");
     setBusy(true);
     const { error } = await supabase.rpc("submit_application", {
       p: {
         full_name: f.name, phone: f.phone, role: f.role, license_state: f.licenseState,
         license_number: f.license, years_experience: f.experience, town: f.town,
+        state, zip: f.zip.trim(),
         license_disciplined: f.disciplined === "yes", id_types: f.idTypes.join(", "),
         ref1_name: f.ref1Name, ref1_relationship: f.ref1Rel, ref1_contact: f.ref1Contact,
         ref2_name: f.ref2Name, ref2_relationship: f.ref2Rel, ref2_contact: f.ref2Contact,
         settings: f.settings.join(", "), availability: f.availability.join(", "), consent: true,
+        work_history: started, reference_consent: true,
       },
     });
     setBusy(false);
@@ -52,6 +72,10 @@ export default function Apply({ onDone }) {
       <Field value={f.phone} onChangeText={set("phone")} keyboardType="phone-pad" autoComplete="tel" />
       <Text style={styles.label}>Town</Text>
       <Field value={f.town} onChangeText={set("town")} />
+      <Text style={styles.label}>State (two letters)</Text>
+      <Field value={f.state} onChangeText={set("state")} autoCapitalize="characters" maxLength={2} autoComplete="postal-address-region" />
+      <Text style={styles.label}>ZIP code</Text>
+      <Field value={f.zip} onChangeText={set("zip")} keyboardType="number-pad" maxLength={10} autoComplete="postal-code" />
       <Text style={styles.label}>Credential type</Text>
       <Choice options={APPLY_ROLES} value={f.role} onChange={set("role")} />
       <Text style={styles.label}>License state</Text>
@@ -64,6 +88,17 @@ export default function Apply({ onDone }) {
       <Choice options={EXPERIENCE} value={f.experience} onChange={set("experience")} />
       <Text style={styles.label}>Forms of ID you can show when hired</Text>
       <Choice multi options={ID_TYPES} value={f.idTypes} onChange={set("idTypes")} />
+      <Text style={[styles.label, { marginTop: 18, fontSize: 16 }]}>Work history</Text>
+      <Text style={styles.p}>Your most recent job first. Add up to three. Month and year is fine, like Mar 2022.</Text>
+      {[1, 2, 3].map((n) => (
+        <View key={n}>
+          <Text style={styles.label}>Job {n}{n > 1 ? " (optional)" : ""}</Text>
+          <Field placeholder="Employer" value={f[`job${n}Employer`]} onChangeText={set(`job${n}Employer`)} />
+          <Field placeholder="Job title" value={f[`job${n}Title`]} onChangeText={set(`job${n}Title`)} />
+          <Field placeholder="Started (like Mar 2022)" value={f[`job${n}From`]} onChangeText={set(`job${n}From`)} />
+          <Field placeholder="Ended, or Present" value={f[`job${n}To`]} onChangeText={set(`job${n}To`)} />
+        </View>
+      ))}
       <Text style={styles.label}>Where you want to work</Text>
       <Choice multi options={SETTINGS} value={f.settings} onChange={set("settings")} />
       <Text style={styles.label}>Availability</Text>
@@ -84,8 +119,12 @@ export default function Apply({ onDone }) {
       <Choice options={["I agree that Apixora may contact me and look up my license and references."]}
         value={f.consent ? "I agree that Apixora may contact me and look up my license and references." : ""}
         onChange={() => set("consent")(!f.consent)} />
+      <Choice options={["I agree that Apixora may contact my references and the past employers listed above."]}
+        value={f.referenceConsent ? "I agree that Apixora may contact my references and the past employers listed above." : ""}
+        onChange={() => set("referenceConsent")(!f.referenceConsent)} />
       {!!msg && <Text style={styles.error} accessibilityRole="alert">{msg}</Text>}
       <Button title={busy ? "Sending..." : "Send application"} onPress={send} disabled={busy} />
+      {onBack && <Button title="Back" secondary onPress={onBack} />}
       <Button title="Sign out" secondary onPress={() => supabase.auth.signOut()} />
       <View style={{ height: 40 }} />
     </ScrollView>
