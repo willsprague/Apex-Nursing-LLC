@@ -38,11 +38,19 @@ export async function submitApplication(_prev, fd) {
     name: text(fd, `ref${n}Name`), rel: text(fd, `ref${n}Rel`), contact: text(fd, `ref${n}Contact`),
   }));
   const consent = fd.get("consent") === "on";
+  const referenceConsent = fd.get("referenceConsent") === "on";
+  const jobs = [1, 2, 3].map((n) => ({
+    employer: text(fd, `job${n}Employer`), title: text(fd, `job${n}Title`),
+    from: text(fd, `job${n}From`), to: text(fd, `job${n}To`),
+  }));
 
   // Sent back with any error so the form keeps what the person typed.
   const values = {
     name: full_name, phone, role, licenseState: license_state, license: license_number,
-    experience: years_experience, town, disciplined, settings, availability, idTypes, consent,
+    experience: years_experience, town, disciplined, settings, availability, idTypes, consent, referenceConsent,
+    job1Employer: jobs[0].employer, job1Title: jobs[0].title, job1From: jobs[0].from, job1To: jobs[0].to,
+    job2Employer: jobs[1].employer, job2Title: jobs[1].title, job2From: jobs[1].from, job2To: jobs[1].to,
+    job3Employer: jobs[2].employer, job3Title: jobs[2].title, job3From: jobs[2].from, job3To: jobs[2].to,
     ref1Name: refs[0].name, ref1Rel: refs[0].rel, ref1Contact: refs[0].contact,
     ref2Name: refs[1].name, ref2Rel: refs[1].rel, ref2Contact: refs[1].contact,
   };
@@ -59,6 +67,17 @@ export async function submitApplication(_prev, fd) {
   }
   if (refs.some((r) => !REFERENCE_RELATIONSHIPS.includes(r.rel))) {
     return fail("Choose each reference's professional relationship from the list.");
+  }
+  // Job 1 is required. Jobs 2 and 3 are optional, but a started job must be complete.
+  const started = jobs.filter((j) => j.employer || j.title || j.from || j.to);
+  if (!jobs[0].employer || !jobs[0].title || !jobs[0].from || !jobs[0].to) {
+    return fail("Add your most recent job with the employer, job title, and when you started and ended.");
+  }
+  if (started.some((j) => !j.employer || !j.title || !j.from || !j.to)) {
+    return fail("Finish each job you started: employer, job title, start and end.");
+  }
+  if (started.some((j) => j.employer.length > 100 || j.title.length > 100 || j.from.length > 30 || j.to.length > 30)) {
+    return fail("One of the job answers is too long. Shorten it and try again.");
   }
   if (!["yes", "no"].includes(disciplined)) {
     return fail("Answer the question about license discipline.");
@@ -88,6 +107,10 @@ export async function submitApplication(_prev, fd) {
     return fail("Check the box so we can contact you and look up your license.");
   }
 
+  if (!referenceConsent) {
+    return fail("Check the box so we can contact your references and past employers.");
+  }
+
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
@@ -104,6 +127,8 @@ export async function submitApplication(_prev, fd) {
     settings: settings.join(", "),
     availability: availability.join(", "),
     consent,
+    work_history: started,
+    reference_consent: true,
   });
   if (error?.code === "23505") {
     redirect("/apply");

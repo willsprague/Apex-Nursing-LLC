@@ -69,6 +69,18 @@ export default function ApplyForm() {
         </fieldset>
       ))}
       <fieldset>
+        <legend>Work history: your most recent job first. Add up to three. Month and year is fine, like "Mar 2022".</legend>
+        {[1, 2, 3].map((n) => (
+          <div key={n} style={{ marginBottom: 12 }}>
+            <p style={{ margin: "8px 0 0" }}><b>Job {n}</b>{n > 1 ? " (optional)" : ""}</p>
+            <label>Employer <input name={`job${n}Employer`} defaultValue={v[`job${n}Employer`]} required={n === 1} maxLength={100} /></label>
+            <label>Job title <input name={`job${n}Title`} defaultValue={v[`job${n}Title`]} required={n === 1} maxLength={100} /></label>
+            <label>Started <input name={`job${n}From`} defaultValue={v[`job${n}From`]} required={n === 1} maxLength={30} /></label>
+            <label>Ended (or "Present") <input name={`job${n}To`} defaultValue={v[`job${n}To`]} required={n === 1} maxLength={30} /></label>
+          </div>
+        ))}
+      </fieldset>
+      <fieldset>
         <legend>Where do you want to work? Choose all that apply.</legend>
         {SETTINGS.map((s) => (
           <label key={s} style={{ display: "block" }}><input type="checkbox" name="settings" value={s} defaultChecked={has("settings", s)} /> {s}</label>
@@ -84,6 +96,10 @@ export default function ApplyForm() {
         <input type="checkbox" name="consent" defaultChecked={v.consent} required /> I agree that Apixora may contact me about
         shifts and look up my license with the state. I understand a background check may be needed
         later, and I will be asked for my permission before one is run.
+      </label>
+      <label style={{ display: "block" }}>
+        <input type="checkbox" name="referenceConsent" defaultChecked={v.referenceConsent} required /> I agree that Apixora may contact my
+        references and the past employers listed above to confirm my work and my experience.
       </label>
       <p><small>Do not enter your Social Security number or upload ID here. The background check runs through a secure provider page, and we check your ID in person when you are hired.</small></p>
       <button className="btn" type="submit" disabled={pending}>{pending ? "Sending" : "Submit application"}</button>

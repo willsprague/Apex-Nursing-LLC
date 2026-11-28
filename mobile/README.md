@@ -10,7 +10,7 @@ The old home health listings screens were removed. That idea is parked (backlog 
 
 ## One-time setup
 
-1. In the Supabase SQL Editor run migrations 001 to 009 from `supabase/migrations/` if they have not been run. Migration 009 adds `submit_application`, which the phone uses instead of the website's server-only key.
+1. In the Supabase SQL Editor run migrations 001 to 011 from `supabase/migrations/` if they have not been run. Migration 009 adds `submit_application`, which the phone uses instead of the website's server-only key, and 011 updates it with work history and reference permission.
 2. In Supabase open Authentication > Email Templates > Magic Link and make sure the message includes the code: `Your sign-in code is {{ .Token }}`. You can keep the website's link in the same template.
 3. Copy `.env.example` to `.env` and fill in the project URL and anon key.
 4. You need Node.js 22.13 or newer (the LTS download at nodejs.org works). In this folder run `npm install`, then `npx expo install --fix` (this lines up the other packages with Expo SDK 58), then `npx expo start --clear`. Scan the QR code with the Expo Go app to try it.
