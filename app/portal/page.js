@@ -4,6 +4,7 @@ import { signOut } from "../admin/actions";
 import { cancelShift, addBonus } from "./actions";
 import RegisterForm from "./RegisterForm";
 import ShiftForm from "./ShiftForm";
+import UnitForm from "./UnitForm";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Facility portal", robots: { index: false, follow: false } };
@@ -47,23 +48,29 @@ export default async function Portal({ searchParams }) {
     </>);
   }
 
-  const [{ data: roles }, { data: shifts }] = await Promise.all([
+  const [{ data: roles }, { data: shifts }, { data: units }] = await Promise.all([
     supabase.from("shift_roles").select("role, min_bill_rate").order("role"),
     supabase.from("shifts")
-      .select("id, role, starts_at, ends_at, headcount, bill_rate, bonus_rate, status, notes")
+      .select("id, role, starts_at, ends_at, bill_rate, bonus_rate, status, notes, ratio_to, facility_units(name)")
       .order("starts_at", { ascending: false }).limit(100),
+    supabase.from("facility_units").select("id, name, floor, unit_type, patients").order("name"),
   ]);
 
   return shell(<>
     {actionError && <p role="alert" style={{ color: "#f2b8b5", fontWeight: 600 }}>{String(actionError).slice(0, 300)}</p>}
     <h2>{facility.name}</h2>
-    <h3>Post a shift</h3>
-    <ShiftForm roles={roles || []} />
+    <h3>Your units</h3>
+    {(units || []).map((u) => <p key={u.id}>{u.name}{u.floor ? `, ${u.floor}` : ""}: {u.unit_type}, {u.patients} patients</p>)}
+    <UnitForm />
+    <h3 style={{ marginTop: 32 }}>Post a shift</h3>
+    <ShiftForm roles={roles || []} units={units || []} />
     <h3 style={{ marginTop: 32 }}>Your shifts</h3>
     {(shifts || []).length === 0 && <p>No shifts yet.</p>}
     {(shifts || []).map((s) => (
       <div key={s.id} style={{ padding: 8, borderBottom: "1px solid #ddd" }}>
-        <b>{s.role}</b> x{s.headcount}, {fmt(s.starts_at)} to {fmt(s.ends_at)}
+        <b>{s.role}</b>, {fmt(s.starts_at)} to {fmt(s.ends_at)}
+        <br />
+        {s.facility_units?.name ? `${s.facility_units.name}` : "No unit"}{s.ratio_to ? `, 1 nurse to ${s.ratio_to}` : ""}
         <br />
         You pay ${s.bill_rate}/hr{Number(s.bonus_rate) > 0 ? ` plus a $${s.bonus_rate}/hr bonus` : ""}. Status: {s.status}
         {s.status === "open" && (

@@ -16,6 +16,7 @@ export const REFERENCE_RELATIONSHIPS = [
   "Clinical instructor or preceptor", "Peer in the same role", "Peer in a different role",
   "Physician or other provider I worked with",
 ];
+export const UNIT_TYPES = ["Memory care", "Long-term care", "Skilled nursing", "Assisted living", "Rehab", "Medical-surgical", "ICU", "Emergency", "Behavioral health", "Home health", "Other"];
 export const FACILITY_TYPES = ["Long-term care", "Hospital", "Home health or clinic", "Other"];
 
 export const STAGES = [

@@ -35,23 +35,48 @@ export async function postShift(_prev, fd) {
   const start = text(fd, "start");
   const end = text(fd, "end");
   const role = text(fd, "role");
-  const headcount = Number(text(fd, "headcount"));
+  const people = Number(text(fd, "people"));
   const rate = Number(text(fd, "rate"));
+  const unit = text(fd, "unit");
+  const ratio = Number(text(fd, "ratio"));
+  const aidesRaw = text(fd, "aides");
+  const aides = aidesRaw === "" ? null : Number(aidesRaw);
   const notes = text(fd, "notes");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end) || !role) {
     return { ok: false, message: "Choose a role, date, start time and end time." };
   }
-  if (!Number.isInteger(headcount) || !(rate > 0)) {
+  if (!Number.isInteger(people) || !(rate > 0)) {
     return { ok: false, message: "Enter how many people you need and an hourly rate." };
+  }
+  if (!/^[0-9a-f-]{36}$/i.test(unit)) return { ok: false, message: "Choose the unit, or add one first." };
+  if (!Number.isInteger(ratio) || ratio < 1 || ratio > 99) {
+    return { ok: false, message: "Enter the ratio as the number of patients per nurse (1 to 99)." };
+  }
+  if (aides !== null && (!Number.isInteger(aides) || aides < 0 || aides > 99)) {
+    return { ok: false, message: "Aides on must be a whole number from 0 to 99." };
   }
   const supabase = await createSupabase();
   const { error } = await supabase.rpc("create_shift", {
     p_role: role, p_date: date, p_start: start, p_end: end,
-    p_headcount: headcount, p_bill_rate: rate, p_notes: notes,
+    p_people: people, p_bill_rate: rate, p_notes: notes,
+    p_unit: unit, p_ratio: ratio, p_aides: aides,
   });
   if (error) return { ok: false, message: friendly(error, "The shift was not saved. Try again.") };
   revalidatePath("/portal");
-  return { ok: true, message: "Shift posted." };
+  return { ok: true, message: people > 1 ? `${people} shifts posted, one per person.` : "Shift posted." };
+}
+
+export async function addUnit(_prev, fd) {
+  const patients = Number(text(fd, "patients"));
+  const name = text(fd, "name");
+  if (!name || !Number.isInteger(patients) || patients < 1) return { ok: false, message: "Enter the unit name and how many patients it has." };
+  const supabase = await createSupabase();
+  const { error } = await supabase.rpc("add_unit", {
+    p_name: name, p_floor: text(fd, "floor"), p_type: text(fd, "type"), p_patients: patients,
+  });
+  if (error) return { ok: false, message: friendly(error, "The unit was not saved. Try again.") };
+  revalidatePath("/portal");
+  return { ok: true, message: "Unit saved." };
 }
 
 export async function cancelShift(fd) {
