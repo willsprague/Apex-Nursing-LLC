@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, View, Text } from "react-native";
+import { View, Text } from "react-native";
+import Apix from "./src/Apix";
 import { StatusBar } from "expo-status-bar";
 import { supabase } from "./src/supabase";
 import SignIn from "./src/SignIn";
@@ -78,5 +79,5 @@ export default function App() {
 }
 
 function Loading() {
-  return <View style={[styles.screen, { justifyContent: "center" }]}><ActivityIndicator /></View>;
+  return <Apix />;
 }

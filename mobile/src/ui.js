@@ -64,6 +64,8 @@ export function ShiftCard({ s, onPress, children }) {
         {bonus ? <Pill text="Bonus added" tone="gold" /> : s.pill ? <Pill text={s.pill} /> : null}
       </View>
       <Text style={[styles.muted, { marginTop: 2 }]}>{s.when}</Text>
+      {s.unit ? <Text style={{ fontSize: 14, fontWeight: "700", color: colors.deep, marginTop: 2 }}>{s.unit}</Text> : null}
+      {s.ratio ? <Text style={styles.muted}>{s.ratio}</Text> : null}
       <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8, marginTop: 8 }}>
         {bonus ? <Text style={{ fontSize: 15, color: "#6b6b64", textDecorationLine: "line-through" }}>${s.base}</Text> : null}
         <Text style={{ fontSize: 28, fontWeight: "700", color: colors.green }}>
