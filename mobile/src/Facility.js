@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { supabase } from "./supabase";
 import { Button, Choice, Field, friendly, styles, when } from "./ui";
-import { FACILITY_TYPES } from "./options";
+import { FACILITY_TYPES, UNIT_TYPES } from "./options";
 
 export default function Facility({ user }) {
   const [facility, setFacility] = useState(undefined);
@@ -63,33 +63,50 @@ function Shifts({ facility }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [bonus, setBonus] = useState({});
-  const [f, setF] = useState({ role: "", date: "", start: "07:00", end: "15:00", headcount: "1", rate: "", notes: "" });
+  const [units, setUnits] = useState([]);
+  const [u, setU] = useState({ name: "", floor: "", type: "Memory care", patients: "" });
+  const [f, setF] = useState({ role: "", date: "", start: "07:00", end: "15:00", people: "1", unit: "", ratio: "", aides: "", rate: "", notes: "" });
   const set = (k) => (v) => setF((p) => ({ ...p, [k]: v }));
 
   const load = useCallback(async () => {
     setBusy(true);
-    const [r, s] = await Promise.all([
+    const [r, s, un] = await Promise.all([
       supabase.from("shift_roles").select("role, min_bill_rate").order("role"),
       supabase.from("shifts")
-        .select("id, role, starts_at, ends_at, headcount, bill_rate, bonus_rate, status, notes")
+        .select("id, role, starts_at, ends_at, bill_rate, bonus_rate, status, notes, ratio_to, facility_units(name)")
         .order("starts_at", { ascending: false }).limit(100),
+      supabase.from("facility_units").select("id, name, floor, unit_type, patients").order("name"),
     ]);
+    setUnits(un.data || []);
     setRoles(r.data || []);
     setShifts(s.data || []);
     setBusy(false);
   }, []);
   useEffect(() => { load(); }, [load]);
 
+  async function saveUnit() {
+    setMsg("");
+    const { error } = await supabase.rpc("add_unit", {
+      p_name: u.name, p_floor: u.floor, p_type: u.type, p_patients: Number(u.patients),
+    });
+    if (error) return setMsg(friendly(error, "The unit was not saved. Try again."));
+    setU({ name: "", floor: "", type: "Memory care", patients: "" });
+    load();
+  }
+
   async function post() {
     setMsg("");
-    const headcount = Number(f.headcount), rate = Number(f.rate);
+    const people = Number(f.people), rate = Number(f.rate), ratio = Number(f.ratio);
     if (!f.role || !/^\d{4}-\d{2}-\d{2}$/.test(f.date) || !/^\d{2}:\d{2}$/.test(f.start) || !/^\d{2}:\d{2}$/.test(f.end)) {
       return setMsg("Choose a role, then enter the date as YYYY-MM-DD and times as HH:MM (24 hour, Eastern).");
     }
-    if (!Number.isInteger(headcount) || !(rate > 0)) return setMsg("Enter how many people you need and an hourly rate.");
+    if (!Number.isInteger(people) || !(rate > 0)) return setMsg("Enter how many people you need and an hourly rate.");
+    if (!f.unit) return setMsg("Choose the unit, or add one first.");
+    if (!Number.isInteger(ratio) || ratio < 1 || ratio > 99) return setMsg("Enter the ratio as patients per nurse (1 to 99).");
     const { error } = await supabase.rpc("create_shift", {
       p_role: f.role, p_date: f.date, p_start: f.start, p_end: f.end,
-      p_headcount: headcount, p_bill_rate: rate, p_notes: f.notes.trim(),
+      p_people: people, p_bill_rate: rate, p_notes: f.notes.trim(),
+      p_unit: f.unit, p_ratio: ratio, p_aides: f.aides === "" ? null : Number(f.aides),
     });
     if (error) return setMsg(friendly(error, "The shift was not saved. Try again."));
     setF((p) => ({ ...p, date: "", rate: "", notes: "" }));
@@ -108,7 +125,15 @@ function Shifts({ facility }) {
     <ScrollView style={styles.screen} keyboardShouldPersistTaps="handled"
       refreshControl={<RefreshControl refreshing={busy} onRefresh={load} />}>
       <Text style={styles.h1}>{facility.name}</Text>
-      <Text style={styles.label}>Post a shift</Text>
+      <Text style={styles.h2}>Your units</Text>
+      {units.map((x) => <Text key={x.id} style={styles.p}>{x.name}{x.floor ? `, ${x.floor}` : ""}: {x.unit_type}, {x.patients} patients</Text>)}
+      <Text style={styles.label}>Add a unit</Text>
+      <Field value={u.name} onChangeText={(v) => setU((p) => ({ ...p, name: v }))} placeholder="Unit name (Lee Unit)" />
+      <Field style={{ marginTop: 8 }} value={u.floor} onChangeText={(v) => setU((p) => ({ ...p, floor: v }))} placeholder="Floor (2nd floor)" />
+      <Choice options={UNIT_TYPES} value={u.type} onChange={(v) => setU((p) => ({ ...p, type: v }))} />
+      <Field style={{ marginTop: 8 }} value={u.patients} onChangeText={(v) => setU((p) => ({ ...p, patients: v }))} placeholder="Patients on the unit" keyboardType="number-pad" />
+      <Button title="Save unit" secondary onPress={saveUnit} />
+      <Text style={styles.h2}>Post a shift</Text>
       <Choice options={roles.map((r) => r.role)} value={f.role} onChange={set("role")} />
       <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
       <Field value={f.date} onChangeText={set("date")} placeholder="2026-12-01" autoCapitalize="none" />
@@ -117,8 +142,16 @@ function Shifts({ facility }) {
         <Field style={{ flex: 1 }} value={f.start} onChangeText={set("start")} />
         <Field style={{ flex: 1 }} value={f.end} onChangeText={set("end")} />
       </View>
-      <Text style={styles.label}>People needed</Text>
-      <Field value={f.headcount} onChangeText={set("headcount")} keyboardType="number-pad" />
+      <Text style={styles.label}>Unit</Text>
+      {units.length === 0 && <Text style={styles.muted}>Add a unit below first.</Text>}
+      <Choice options={units.map((x) => x.name)} value={units.find((x) => x.id === f.unit)?.name || ""}
+        onChange={(n) => set("unit")(units.find((x) => x.name === n)?.id || "")} />
+      <Text style={styles.label}>Ratio: patients per nurse</Text>
+      <Field value={f.ratio} onChangeText={set("ratio")} keyboardType="number-pad" placeholder="14" />
+      <Text style={styles.label}>Aides on this shift (optional)</Text>
+      <Field value={f.aides} onChangeText={set("aides")} keyboardType="number-pad" />
+      <Text style={styles.label}>People needed (each is a separate shift)</Text>
+      <Field value={f.people} onChangeText={set("people")} keyboardType="number-pad" />
       <Text style={styles.label}>Hourly rate you pay{min ? ` (at least $${Math.max(Number(min), 10)})` : ""}</Text>
       <Field value={f.rate} onChangeText={set("rate")} keyboardType="decimal-pad" />
       <Text style={styles.label}>Notes (optional)</Text>
@@ -130,7 +163,7 @@ function Shifts({ facility }) {
       {shifts.length === 0 && <Text style={styles.p}>No shifts yet.</Text>}
       {shifts.map((s) => (
         <View key={s.id} style={styles.card}>
-          <Text style={styles.label}>{s.role} x{s.headcount}</Text>
+          <Text style={styles.label}>{s.role}{s.facility_units?.name ? ` · ${s.facility_units.name}` : ""}{s.ratio_to ? ` · 1 to ${s.ratio_to}` : ""}</Text>
           <Text style={styles.p}>{when(s.starts_at)} to {when(s.ends_at)}</Text>
           <Text style={styles.p}>
             You pay ${s.bill_rate}/hr{Number(s.bonus_rate) > 0 ? ` plus a $${s.bonus_rate}/hr bonus` : ""}. Status: {s.status}
