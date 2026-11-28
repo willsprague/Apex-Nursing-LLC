@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabase } from "../../lib/supabase/server";
-import { setStatus, setApplicationStatus, signOut, setFee, setRoleMin, setFacilityVerified, setShiftStatus, setWorkerVerified, setClaimStatus } from "./actions";
+import { setStatus, setApplicationStatus, signOut, setFee, setBonusFee, setRoleMin, setFacilityVerified, setShiftStatus, setWorkerVerified, setClaimStatus } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin", robots: { index: false, follow: false } };
